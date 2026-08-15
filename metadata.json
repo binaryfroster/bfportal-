@@ -1,0 +1,6 @@
+{
+  "name": "Binary Froster Portal",
+  "description": "Enterprise-grade client portal for Binary Froster with a dark minimalist luxury aesthetic, interactive onboarding, milestone tracker, task Kanban, file manager, custom billing, real-time messaging, Cal.com scheduling, ticket systems, and secure role-based access.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
