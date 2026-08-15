@@ -384,6 +384,83 @@ export default function Dashboard({ user, project, onNavigate, onActionClick }: 
             ))}
           </div>
         </div>
+
+        {/* EXECUTIVE FOUNDERS & LEADERSHIP DIRECTORY */}
+        <div className="bg-[#0F172A] border border-cyan-500/30 p-6 rounded-card space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2">
+              <Activity className="h-4 w-4 text-cyan-400" />
+              <h3 className="font-sans text-xs font-bold uppercase tracking-wider text-white">
+                BINARY FROSTER // EXECUTIVE LEADERSHIP DIRECTORY
+              </h3>
+            </div>
+            <span className="font-mono text-[9px] text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded border border-emerald-500/20 uppercase font-bold">
+              VERIFIED MANAGEMENT
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Shivam Dube */}
+            <div className="p-4 bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 rounded-xl flex items-center gap-3.5 transition-all group">
+              <img
+                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+                alt="Shivam Dube"
+                className="w-12 h-12 rounded-xl object-cover border border-cyan-500/40 group-hover:scale-105 transition-transform shrink-0"
+              />
+              <div className="space-y-0.5 overflow-hidden">
+                <h4 className="font-sans text-xs font-bold text-white group-hover:text-cyan-300 transition-colors truncate">
+                  Shivam Dube
+                </h4>
+                <p className="font-mono text-[10px] text-cyan-400 font-bold uppercase truncate">
+                  Founder & AI Lead
+                </p>
+                <p className="font-mono text-[9px] text-slate-400 truncate">
+                  shivam@binaryfroster.com
+                </p>
+              </div>
+            </div>
+
+            {/* Jawad Khan Hakim */}
+            <div className="p-4 bg-slate-900/80 border border-slate-800 hover:border-emerald-500/40 rounded-xl flex items-center gap-3.5 transition-all group">
+              <img
+                src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80"
+                alt="Jawad Khan Hakim"
+                className="w-12 h-12 rounded-xl object-cover border border-emerald-500/40 group-hover:scale-105 transition-transform shrink-0"
+              />
+              <div className="space-y-0.5 overflow-hidden">
+                <h4 className="font-sans text-xs font-bold text-white group-hover:text-emerald-300 transition-colors truncate">
+                  Jawad Khan Hakim
+                </h4>
+                <p className="font-mono text-[10px] text-emerald-400 font-bold uppercase truncate">
+                  Backend Architect
+                </p>
+                <p className="font-mono text-[9px] text-slate-400 truncate">
+                  jawad@binaryfroster.com
+                </p>
+              </div>
+            </div>
+
+            {/* Digvijay Kadam */}
+            <div className="p-4 bg-slate-900/80 border border-slate-800 hover:border-purple-500/40 rounded-xl flex items-center gap-3.5 transition-all group">
+              <img
+                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
+                alt="Digvijay Kadam"
+                className="w-12 h-12 rounded-xl object-cover border border-purple-500/40 group-hover:scale-105 transition-transform shrink-0"
+              />
+              <div className="space-y-0.5 overflow-hidden">
+                <h4 className="font-sans text-xs font-bold text-white group-hover:text-purple-300 transition-colors truncate">
+                  Digvijay Kadam
+                </h4>
+                <p className="font-mono text-[10px] text-purple-400 font-bold uppercase truncate">
+                  Product UI/UX Director
+                </p>
+                <p className="font-mono text-[9px] text-slate-400 truncate">
+                  digvijay@binaryfroster.com
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/src/components/providers/auth-provider";
 import { Sidebar } from "@/src/components/layout/sidebar";
 import { Topbar } from "@/src/components/layout/topbar";
+import { BottomNav } from "@/src/components/layout/bottom-nav";
+import { AppDownloadModal } from "@/src/components/modals/app-download-modal";
 import { SessionTimeout } from "@/src/lib/auth/session-timeout";
 import { Skeleton } from "@/src/components/ui/skeleton";
 import { PortalDataProvider } from "@/src/components/providers/portal-data-provider";
-
 import { CommandPalette } from "@/src/components/ui/command-palette";
 
 export default function PortalLayout({
@@ -20,6 +21,7 @@ export default function PortalLayout({
   const { user, isLoading } = useUser();
   const [sidebarOpen, setSidebarOpen] = React.useState(true);
   const [cmdPaletteOpen, setCmdPaletteOpen] = React.useState(false);
+  const [downloadModalOpen, setDownloadModalOpen] = React.useState(false);
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -48,23 +50,23 @@ export default function PortalLayout({
       }
     };
     window.addEventListener("resize", handleResize);
-    handleResize(); // trigger on mount
+    handleResize();
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   if (isLoading || !user) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-bg-primary">
+      <div className="flex items-center justify-center min-h-screen bg-[#0A0D14]">
         <div className="space-y-4 max-w-sm w-full px-6 text-center">
-          <div className="w-10 h-10 rounded bg-gradient-to-tr from-accent-primary to-[#008ebb] flex items-center justify-center font-bold font-mono text-bg-primary text-lg mx-auto animate-pulse">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-cyan-500 to-emerald-400 flex items-center justify-center font-bold font-mono text-slate-950 text-xl mx-auto shadow-lg shadow-cyan-500/20 animate-pulse">
             BF
           </div>
-          <p className="text-xs font-mono text-text-secondary uppercase tracking-widest">
-            Accessing Cryptokey Session...
+          <p className="text-xs font-mono text-cyan-400 uppercase tracking-widest">
+            INITIALIZING NATIVE SESSION...
           </p>
           <div className="space-y-2">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-5/6 mx-auto" />
+            <Skeleton className="h-4 w-full bg-slate-900" />
+            <Skeleton className="h-4 w-5/6 mx-auto bg-slate-900" />
           </div>
         </div>
       </div>
@@ -73,24 +75,34 @@ export default function PortalLayout({
 
   return (
     <PortalDataProvider>
-      <div className="flex h-screen bg-bg-primary overflow-hidden relative font-sans">
+      <div className="flex h-screen bg-[#0A0D14] overflow-hidden relative font-sans text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200">
         {/* Command Palette Modal */}
         <CommandPalette
           isOpen={cmdPaletteOpen}
           onClose={() => setCmdPaletteOpen(false)}
         />
 
+        {/* App Download Center Modal */}
+        <AppDownloadModal
+          isOpen={downloadModalOpen}
+          onClose={() => setDownloadModalOpen(false)}
+        />
+
         {/* Session timeout monitoring */}
         <SessionTimeout />
 
         {/* Sidebar Navigation */}
-        <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+        <Sidebar
+          isOpen={sidebarOpen}
+          setIsOpen={setSidebarOpen}
+          onOpenDownloadModal={() => setDownloadModalOpen(true)}
+        />
 
         {/* Mobile sidebar backdrop */}
         {sidebarOpen && (
           <div
             onClick={() => setSidebarOpen(false)}
-            className="fixed inset-0 bg-black/60 z-30 md:hidden backdrop-blur-xs cursor-pointer"
+            className="fixed inset-0 bg-black/70 z-30 md:hidden backdrop-blur-sm cursor-pointer"
           />
         )}
 
@@ -99,10 +111,15 @@ export default function PortalLayout({
           <Topbar
             onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
             title="Binary Froster Command Core"
+            onOpenDownloadModal={() => setDownloadModalOpen(true)}
           />
-          <main className="flex-1 overflow-y-auto px-6 py-8 scrollbar-thin relative bg-bg-primary bg-[radial-gradient(#1f1f1f_1px,transparent_1px)] bg-[size:24px_24px]">
+          
+          <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 sm:py-8 scrollbar-thin relative bg-[#0A0D14] pb-20 md:pb-8">
             {children}
           </main>
+
+          {/* Mobile Bottom Navigation Bar (< 768px) */}
+          <BottomNav onOpenDownloadModal={() => setDownloadModalOpen(true)} />
         </div>
       </div>
     </PortalDataProvider>
