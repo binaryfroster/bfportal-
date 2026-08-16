@@ -12,6 +12,7 @@ import {
   Check,
   Terminal,
   UploadCloud,
+  X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@/src/components/providers/auth-provider";
@@ -211,12 +212,22 @@ export default function OnboardingPage() {
               </div>
 
               <div className="flex justify-between items-center pt-4 border-t border-border-custom">
-                <button
-                  onClick={() => setStep("checklist")}
-                  className="font-mono text-xs text-text-muted hover:text-white transition-colors cursor-pointer"
-                >
-                  [SKIP_TOUR]
-                </button>
+                <div className="flex gap-4">
+                  {tourIndex > 0 && (
+                    <button
+                      onClick={() => setTourIndex(tourIndex - 1)}
+                      className="font-mono text-xs text-text-muted hover:text-white transition-colors cursor-pointer"
+                    >
+                      [BACK]
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setStep("checklist")}
+                    className="font-mono text-xs text-text-muted hover:text-white transition-colors cursor-pointer"
+                  >
+                    [SKIP_TOUR]
+                  </button>
+                </div>
                 <button
                   onClick={handleNextTour}
                   className="px-6 py-2.5 bg-bg-secondary border border-accent-primary/40 text-accent-primary hover:bg-accent-primary/10 font-mono text-xs uppercase tracking-widest font-bold rounded-input transition-all flex items-center gap-2 cursor-pointer"
@@ -371,41 +382,66 @@ export default function OnboardingPage() {
                 </div>
 
                 <div className="pl-7">
-                  <label className="inline-flex items-center justify-center border border-dashed border-border-custom hover:border-accent-primary w-full p-4 rounded-input bg-bg-primary cursor-pointer text-center text-xs text-text-muted transition-colors font-mono hover:text-white">
-                    <input
-                      type="file"
-                      onChange={handleFileChange}
-                      className="hidden"
-                      accept=".pdf,.png,.jpg,.webp,.zip"
-                    />
-                    {fileUploaded ? (
+                  {fileUploaded ? (
+                    <div className="flex items-center justify-between border border-dashed border-border-custom w-full p-4 rounded-input bg-bg-primary text-xs font-mono">
                       <span className="text-brand-success flex items-center gap-2">
                         <Check className="h-4 w-4" />
                         {fileName} - Upload Secured
                       </span>
-                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFileUploaded(false);
+                          setFileName("");
+                          toast.success("File removed");
+                        }}
+                        className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-red-500/10 hover:bg-red-500/25 text-red-400 border border-red-500/30 z-10"
+                      >
+                        <X className="h-3 w-3" />
+                        REMOVE
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="inline-flex items-center justify-center border border-dashed border-border-custom hover:border-accent-primary w-full p-4 rounded-input bg-bg-primary cursor-pointer text-center text-xs text-text-muted transition-colors font-mono hover:text-white">
+                      <input
+                        type="file"
+                        onChange={handleFileChange}
+                        className="hidden"
+                        accept=".pdf,.png,.jpg,.webp,.zip"
+                      />
                       <span className="flex items-center gap-2">
                         <UploadCloud className="h-4 w-4 text-accent-primary" />
                         Click to select brand logo or design assets
                       </span>
-                    )}
-                  </label>
+                    </label>
+                  )}
                 </div>
               </div>
             </div>
 
-            <button
-              onClick={handleCompleteOnboarding}
-              disabled={isLoading || !isChecklistValid}
-              className={`w-full py-3.5 font-mono text-xs font-bold uppercase tracking-widest rounded-input border transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                isChecklistValid
-                  ? "bg-accent-primary text-bg-primary border-transparent shadow-glow-strong"
-                  : "bg-bg-secondary text-text-muted border-border-custom cursor-not-allowed"
-              }`}
-            >
-              {isLoading ? "SAVING PARAMETERS..." : "INITIALIZE FULL COMMAND SET"}
-              <CheckCircle2 className="h-4 w-4" />
-            </button>
+            <div className="space-y-4 w-full">
+              <button
+                onClick={handleCompleteOnboarding}
+                disabled={isLoading || !isChecklistValid}
+                className={`w-full py-3.5 font-mono text-xs font-bold uppercase tracking-widest rounded-input border transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                  isChecklistValid
+                    ? "bg-accent-primary text-bg-primary border-transparent shadow-glow-strong"
+                    : "bg-bg-secondary text-text-muted border-border-custom cursor-not-allowed"
+                }`}
+              >
+                {isLoading ? "SAVING PARAMETERS..." : "INITIALIZE FULL COMMAND SET"}
+                <CheckCircle2 className="h-4 w-4" />
+              </button>
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => toast.success("Draft saved. You can resume anytime")}
+                  className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
+                >
+                  [SAVE DRAFT]
+                </button>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

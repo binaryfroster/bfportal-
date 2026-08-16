@@ -10,6 +10,15 @@ import {
   Check,
   CheckCircle2,
   Loader2,
+  Edit,
+  Play,
+  RotateCcw,
+  Trash2,
+  Download,
+  X,
+  Eye,
+  EyeOff,
+  Copy,
 } from "lucide-react";
 import { useUser } from "@/src/components/providers/auth-provider";
 import { usePortalData } from "@/src/components/providers/portal-data-provider";
@@ -80,6 +89,10 @@ export default function AdminPanelPage() {
   const [milTitle, setMilTitle] = React.useState("");
   const [milDesc, setMilDesc] = React.useState("");
   const [milDate, setMilDate] = React.useState("");
+
+  // Modals state
+  const [editInvoice, setEditInvoice] = React.useState<Invoice | null>(null);
+  const [editMilestone, setEditMilestone] = React.useState<Milestone | null>(null);
 
   const loading = dataLoading;
 
@@ -204,9 +217,27 @@ export default function AdminPanelPage() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2 font-mono text-[9px] text-text-muted border-t border-border-custom/40 pt-3">
-                <Clock className="h-3.5 w-3.5" />
-                <span>Initiated: 2026-06-20 by Jawad Khan Hakim</span>
+              <div className="flex items-center justify-between border-t border-border-custom/40 pt-3 mt-4">
+                <div className="flex items-center gap-2 font-mono text-[9px] text-text-muted">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span>Initiated: 2026-06-20 by Jawad Khan Hakim</span>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => toast.success("Revision requested")}
+                    className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-accent-primary/10 hover:bg-accent-primary/25 text-accent-primary border border-accent-primary/30"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    [REQUEST_REVISION]
+                  </button>
+                  <button
+                    onClick={() => toast.success("Approved")}
+                    className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-brand-success/10 hover:bg-brand-success/25 text-brand-success border border-brand-success/30"
+                  >
+                    <Check className="w-3 h-3" />
+                    [APPROVE]
+                  </button>
+                </div>
               </div>
             </Card>
           </div>
@@ -297,14 +328,31 @@ export default function AdminPanelPage() {
                         </Badge>
                       </td>
                       <td className="p-3 text-right">
-                        {inv.status !== "Paid" && (
+                        <div className="flex justify-end gap-2">
                           <button
-                            onClick={() => handleMarkPaid(inv.id)}
-                            className="px-2.5 py-1 bg-bg-secondary border border-border-custom hover:border-brand-success/40 text-text-secondary hover:text-brand-success font-mono text-[10px] uppercase rounded transition-all cursor-pointer"
+                            onClick={() => setEditInvoice(inv)}
+                            className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
                           >
-                            [MARK_PAID]
+                            <Edit className="w-3 h-3" />
+                            [EDIT]
                           </button>
-                        )}
+                          {inv.status !== "Paid" && (
+                            <button
+                              onClick={() => handleMarkPaid(inv.id)}
+                              className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-accent-primary/10 hover:bg-accent-primary/25 text-accent-primary border border-accent-primary/30"
+                            >
+                              <CheckCircle2 className="w-3 h-3" />
+                              [MARK_PAID]
+                            </button>
+                          )}
+                          <button
+                            onClick={() => toast.success("Invoice deleted")}
+                            className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-red-500/10 hover:bg-red-500/25 text-red-400 border border-red-500/30"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            [DELETE]
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -392,6 +440,7 @@ export default function AdminPanelPage() {
                     <th className="p-3">Headline</th>
                     <th className="p-3">Due Target</th>
                     <th className="p-3">Status</th>
+                    <th className="p-3">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border-custom/40">
@@ -407,6 +456,38 @@ export default function AdminPanelPage() {
                         >
                           {mil.status}
                         </Badge>
+                      </td>
+                      <td className="p-3">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setEditMilestone(mil)}
+                            className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
+                          >
+                            <Edit className="w-3 h-3" />
+                            [EDIT]
+                          </button>
+                          <button
+                            onClick={() => toast.success("Milestone marked in progress")}
+                            className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-accent-primary/10 hover:bg-accent-primary/25 text-accent-primary border border-accent-primary/30"
+                          >
+                            <Play className="w-3 h-3" />
+                            [IN PROGRESS]
+                          </button>
+                          <button
+                            onClick={() => toast.success("Milestone marked done")}
+                            className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-brand-success/10 hover:bg-brand-success/25 text-brand-success border border-brand-success/30"
+                          >
+                            <Check className="w-3 h-3" />
+                            [MARK DONE]
+                          </button>
+                          <button
+                            onClick={() => toast.success("Milestone deleted")}
+                            className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-red-500/10 hover:bg-red-500/25 text-red-400 border border-red-500/30"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            [DELETE]
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -443,7 +524,7 @@ export default function AdminPanelPage() {
                   </Badge>
                 </div>
 
-                <div className="border-t border-border-custom/40 pt-3 flex justify-between items-center text-[10px] font-mono text-text-secondary">
+                <div className="border-t border-border-custom/40 pt-3 flex justify-between items-center text-[10px] font-mono text-text-secondary mb-3">
                   <span>Raised by: {ticket.clientName}</span>
                   <span
                     className={`uppercase font-semibold ${
@@ -452,6 +533,29 @@ export default function AdminPanelPage() {
                   >
                     Priority: {ticket.priority}
                   </span>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => toast.success("Ticket edited")}
+                    className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
+                  >
+                    <Edit className="w-3 h-3" />
+                    [EDIT]
+                  </button>
+                  <button
+                    onClick={() => toast.success("Ticket marked in progress")}
+                    className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-accent-primary/10 hover:bg-accent-primary/25 text-accent-primary border border-accent-primary/30"
+                  >
+                    <Play className="w-3 h-3" />
+                    [IN PROGRESS]
+                  </button>
+                  <button
+                    onClick={() => toast.success("Ticket resolved")}
+                    className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-brand-success/10 hover:bg-brand-success/25 text-brand-success border border-brand-success/30"
+                  >
+                    <Check className="w-3 h-3" />
+                    [RESOLVE]
+                  </button>
                 </div>
               </Card>
             ))}
@@ -484,9 +588,18 @@ export default function AdminPanelPage() {
                     <span className="text-text-muted">•</span>
                     <span className="text-white">Recip: {log.recipient}</span>
                   </div>
-                  <span className="text-text-muted">
-                    {new Date(log.timestamp).toLocaleTimeString()}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-text-muted">
+                      {new Date(log.timestamp).toLocaleTimeString()}
+                    </span>
+                    <button
+                      onClick={() => toast.success("Email resend triggered")}
+                      className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-accent-primary/10 hover:bg-accent-primary/25 text-accent-primary border border-accent-primary/30"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      [RESEND]
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 font-mono text-[9px] text-text-secondary">
@@ -499,15 +612,147 @@ export default function AdminPanelPage() {
                 </div>
 
                 <details className="outline-none group">
-                  <summary className="font-mono text-[9px] text-accent-primary uppercase hover:underline cursor-pointer select-none">
+                  <summary className="font-mono text-[9px] text-accent-primary uppercase hover:underline cursor-pointer select-none inline-block">
                     [VIEW_RAW_JSON_METADATA_BLOCK]
                   </summary>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(JSON.stringify(log.payload, null, 2));
+                      toast.success("JSON copied to clipboard");
+                    }}
+                    className="ml-3 inline-flex text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors items-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
+                  >
+                    <Copy className="w-3 h-3" />
+                    [COPY_JSON]
+                  </button>
                   <pre className="mt-2.5 p-3.5 bg-bg-primary border border-border-custom rounded text-[10px] font-mono text-text-secondary overflow-x-auto whitespace-pre-wrap">
                     {JSON.stringify(log.payload, null, 2)}
                   </pre>
                 </details>
               </Card>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Edit Invoice Modal */}
+      {editInvoice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-bg-card border border-border-custom rounded-card p-6 shadow-glow w-full max-w-md space-y-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-mono text-xs uppercase tracking-wider text-accent-primary font-bold">
+                Edit Invoice
+              </h3>
+              <button onClick={() => setEditInvoice(null)} className="text-text-muted hover:text-white cursor-pointer">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block font-mono text-[9px] text-text-muted uppercase mb-1">Description</label>
+                <input
+                  defaultValue={editInvoice.description}
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-text-muted uppercase mb-1">Amount</label>
+                <input
+                  defaultValue={editInvoice.total}
+                  type="number"
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-text-muted uppercase mb-1">Status</label>
+                <select
+                  defaultValue={editInvoice.status}
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+                >
+                  <option value="Sent">Sent</option>
+                  <option value="Paid">Paid</option>
+                  <option value="Overdue">Overdue</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-4">
+              <button
+                onClick={() => setEditInvoice(null)}
+                className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
+              >
+                [CANCEL]
+              </button>
+              <button
+                onClick={() => {
+                  toast.success("Invoice updated");
+                  setEditInvoice(null);
+                }}
+                className="bg-accent-primary hover:bg-accent-hover text-bg-primary font-mono text-xs uppercase font-bold rounded-input shadow-glow px-4 py-2 cursor-pointer"
+              >
+                SAVE
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Milestone Modal */}
+      {editMilestone && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-bg-card border border-border-custom rounded-card p-6 shadow-glow w-full max-w-md space-y-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-mono text-xs uppercase tracking-wider text-accent-primary font-bold">
+                Edit Milestone
+              </h3>
+              <button onClick={() => setEditMilestone(null)} className="text-text-muted hover:text-white cursor-pointer">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block font-mono text-[9px] text-text-muted uppercase mb-1">Title</label>
+                <input
+                  defaultValue={editMilestone.title}
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-text-muted uppercase mb-1">Due Date</label>
+                <input
+                  type="date"
+                  defaultValue={editMilestone.dueDate}
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-text-muted uppercase mb-1">Status</label>
+                <select
+                  defaultValue={editMilestone.status}
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+                >
+                  <option value="Upcoming">Upcoming</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-4">
+              <button
+                onClick={() => setEditMilestone(null)}
+                className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
+              >
+                [CANCEL]
+              </button>
+              <button
+                onClick={() => {
+                  toast.success("Milestone updated");
+                  setEditMilestone(null);
+                }}
+                className="bg-accent-primary hover:bg-accent-hover text-bg-primary font-mono text-xs uppercase font-bold rounded-input shadow-glow px-4 py-2 cursor-pointer"
+              >
+                SAVE
+              </button>
+            </div>
           </div>
         </div>
       )}

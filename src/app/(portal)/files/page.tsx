@@ -11,6 +11,8 @@ import {
   FolderLock,
   X,
   ShieldCheck,
+  Trash2,
+  Edit,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@/src/components/providers/auth-provider";
@@ -45,11 +47,32 @@ const FOLDERS = [
 
 export default function FileManagerPage() {
   const { user } = useUser();
-  const { loading: dataLoading, files, uploadFile } = usePortalData();
+  const { loading: dataLoading, files, uploadFile, deleteFile, updateFile } = usePortalData();
   const [selectedFolder, setSelectedFolder] = React.useState<typeof FOLDERS[number]>("Discover");
   const [previewFile, setPreviewFile] = React.useState<FileDoc | null>(null);
   const [openVersionsId, setOpenVersionsId] = React.useState<string | null>(null);
   const [uploading, setUploading] = React.useState(false);
+  
+  const [fileToDelete, setFileToDelete] = React.useState<FileDoc | null>(null);
+  const [fileToEdit, setFileToEdit] = React.useState<FileDoc | null>(null);
+  const [editName, setEditName] = React.useState("");
+  const [editPhase, setEditPhase] = React.useState<string>("Discover");
+
+  const handleDeleteConfirm = () => {
+    if (fileToDelete) {
+      deleteFile(fileToDelete.id);
+      toast.success(`Removed file: ${fileToDelete.name}`);
+      setFileToDelete(null);
+    }
+  };
+
+  const handleEditSubmit = () => {
+    if (fileToEdit && editName.trim()) {
+      updateFile(fileToEdit.id, { name: editName, phase: editPhase });
+      toast.success("File metadata updated successfully");
+      setFileToEdit(null);
+    }
+  };
 
   const loading = dataLoading;
 
@@ -219,6 +242,18 @@ export default function FileManagerPage() {
                         )}
 
                         <button
+                          onClick={() => {
+                            setFileToEdit(file);
+                            setEditName(file.name);
+                            setEditPhase(file.phase);
+                          }}
+                          className="p-1.5 bg-bg-secondary border border-border-custom text-text-secondary hover:text-accent-primary rounded hover:border-accent-primary/40 transition-all cursor-pointer"
+                          title="Rename / Edit"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+
+                        <button
                           onClick={() => setPreviewFile(file)}
                           className="p-1.5 bg-bg-secondary border border-border-custom text-text-secondary hover:text-accent-primary rounded hover:border-accent-primary/40 transition-all cursor-pointer"
                           title="Preview"
@@ -234,6 +269,14 @@ export default function FileManagerPage() {
                         >
                           <Download className="h-4 w-4" />
                         </a>
+
+                        <button
+                          onClick={() => setFileToDelete(file)}
+                          className="p-1.5 bg-bg-secondary border border-border-custom text-text-secondary hover:text-red-400 rounded hover:border-red-500/40 transition-all cursor-pointer"
+                          title="Delete"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
                     </div>
 
@@ -355,6 +398,122 @@ export default function FileManagerPage() {
                     </a>
                   </div>
                 )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* RENAME / EDIT METADATA MODAL */}
+      <AnimatePresence>
+        {fileToEdit && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.7 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setFileToEdit(null)}
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm cursor-pointer"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-md bg-bg-card border border-border-custom rounded-card p-6 shadow-glow"
+            >
+              <h3 className="font-mono text-xs uppercase tracking-wider text-accent-primary font-bold mb-4">
+                // EDIT METADATA
+              </h3>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="block font-mono text-[10px] text-text-secondary uppercase">
+                    FILENAME
+                  </label>
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+                    placeholder="Enter new filename"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="block font-mono text-[10px] text-text-secondary uppercase">
+                    PHASE FOLDER
+                  </label>
+                  <select
+                    value={editPhase}
+                    onChange={(e) => setEditPhase(e.target.value)}
+                    className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+                  >
+                    {FOLDERS.map((folder) => (
+                      <option key={folder} value={folder}>
+                        {folder}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="mt-6 flex items-center justify-end gap-3">
+                <button
+                  onClick={() => setFileToEdit(null)}
+                  className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
+                >
+                  [CANCEL]
+                </button>
+                <button
+                  onClick={handleEditSubmit}
+                  className="bg-accent-primary hover:bg-accent-hover text-bg-primary font-mono text-xs uppercase font-bold rounded-input shadow-glow px-4 py-1.5"
+                >
+                  SAVE CHANGES
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* DELETE CONFIRMATION MODAL */}
+      <AnimatePresence>
+        {fileToDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.7 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setFileToDelete(null)}
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm cursor-pointer"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-sm bg-bg-card border border-border-custom rounded-card p-6 shadow-glow"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <Trash2 className="h-5 w-5 text-red-500" />
+                <h3 className="font-mono text-xs uppercase tracking-wider text-red-400 font-bold">
+                  // CONFIRM DELETION
+                </h3>
+              </div>
+              <p className="text-sm text-text-secondary font-sans mb-6">
+                Are you sure you want to permanently delete{" "}
+                <span className="font-bold text-white">{fileToDelete.name}</span>? This action cannot be
+                undone.
+              </p>
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  onClick={() => setFileToDelete(null)}
+                  className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
+                >
+                  [CANCEL]
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-red-500/10 hover:bg-red-500/25 text-red-400 border border-red-500/30"
+                >
+                  DELETE FILE
+                </button>
               </div>
             </motion.div>
           </div>

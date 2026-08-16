@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Activity, Shield, Clock, AlertCircle, RefreshCw, CheckCircle } from "lucide-react";
+import { Activity, Shield, Clock, AlertCircle, RefreshCw, CheckCircle, ArrowUpCircle, Download, Filter } from "lucide-react";
 import { usePortalData } from "@/src/components/providers/portal-data-provider";
 import { Card, CardHeader, CardContent } from "@/src/components/ui/card";
 import { Badge } from "@/src/components/ui/badge";
@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 
 export default function MaintenancePage() {
   const { maintenancePlan } = usePortalData();
+  const [filterType, setFilterType] = React.useState("All");
 
   const handleRenew = () => {
     toast.success("SLA Renewal Requisition dispatched to account team");
@@ -26,10 +27,27 @@ export default function MaintenancePage() {
           </span>
         </div>
 
-        <Button onClick={handleRenew} variant="accent" className="font-mono text-xs uppercase font-bold cursor-pointer">
-          <RefreshCw className="h-4 w-4 mr-1.5" />
-          REQUEST PLAN RENEWAL
-        </Button>
+        <div className="flex items-center gap-3">
+          <button onClick={() => toast.success("Emergency SLA ticket escalated")} className="bg-red-500/10 hover:bg-red-500/25 text-red-400 border border-red-500/30 text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer">
+            <AlertCircle className="h-3 w-3" />
+            Raise Emergency Ticket
+          </button>
+          
+          <button onClick={() => toast.success("Plan upgrade request submitted")} className="bg-brand-success/10 hover:bg-brand-success/25 text-brand-success border border-brand-success/30 text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer">
+            <ArrowUpCircle className="h-3 w-3" />
+            Upgrade Plan
+          </button>
+          
+          <button onClick={() => toast.success("SLA Certificate PDF downloading")} className="bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer">
+            <Download className="h-3 w-3" />
+            Download SLA Certificate
+          </button>
+
+          <Button onClick={handleRenew} variant="accent" className="font-mono text-xs uppercase font-bold cursor-pointer">
+            <RefreshCw className="h-4 w-4 mr-1.5" />
+            REQUEST PLAN RENEWAL
+          </Button>
+        </div>
       </div>
 
       {/* SLA Plan Overview */}
@@ -94,33 +112,69 @@ export default function MaintenancePage() {
 
       {/* Incident & Maintenance History */}
       <Card className="bg-bg-card border-border-custom p-6 space-y-4">
-        <span className="block font-mono text-[9px] text-text-muted uppercase">// INCIDENT & MAINTENANCE HISTORY LOGS</span>
+        <div className="flex justify-between items-center">
+          <span className="block font-mono text-[9px] text-text-muted uppercase">// INCIDENT & MAINTENANCE HISTORY LOGS</span>
+          <div className="flex items-center gap-2">
+            {["All", "Incident", "Maintenance", "Patch"].map((type) => (
+              <button
+                key={type}
+                onClick={() => setFilterType(type)}
+                className={`text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer ${
+                  filterType === type
+                    ? "bg-accent-primary/10 text-accent-primary border border-accent-primary/30"
+                    : "bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
+                }`}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="space-y-3 font-mono text-xs">
-          <div className="p-3.5 bg-bg-secondary/40 border border-border-custom/50 rounded-input flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <CheckCircle className="h-4 w-4 text-brand-success" />
-              <div>
-                <p className="text-white font-bold">Scheduled Security Patch & DB Vacuum</p>
-                <p className="text-[9px] text-text-muted">Executed on 2026-06-28T02:00:00Z • Zero Downtime</p>
+          {(filterType === "All" || filterType === "Maintenance") && (
+            <div className="p-3.5 bg-bg-secondary/40 border border-border-custom/50 rounded-input flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <CheckCircle className="h-4 w-4 text-brand-success" />
+                <div>
+                  <p className="text-white font-bold">Scheduled Security Patch & DB Vacuum</p>
+                  <p className="text-[9px] text-text-muted">Executed on 2026-06-28T02:00:00Z • Zero Downtime</p>
+                </div>
               </div>
+              <Badge variant="cyan" className="font-mono text-[8px]">
+                MAINTENANCE
+              </Badge>
             </div>
-            <Badge variant="cyan" className="font-mono text-[8px]">
-              MAINTENANCE
-            </Badge>
-          </div>
+          )}
 
-          <div className="p-3.5 bg-bg-secondary/40 border border-border-custom/50 rounded-input flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <CheckCircle className="h-4 w-4 text-brand-success" />
-              <div>
-                <p className="text-white font-bold">Staging Ledger Buffer Allocation Adjustment</p>
-                <p className="text-[9px] text-text-muted">Executed on 2026-06-15T14:30:00Z • Resolved in 35 mins (SLA Met)</p>
+          {(filterType === "All" || filterType === "Incident") && (
+            <div className="p-3.5 bg-bg-secondary/40 border border-border-custom/50 rounded-input flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <CheckCircle className="h-4 w-4 text-brand-success" />
+                <div>
+                  <p className="text-white font-bold">Staging Ledger Buffer Allocation Adjustment</p>
+                  <p className="text-[9px] text-text-muted">Executed on 2026-06-15T14:30:00Z • Resolved in 35 mins (SLA Met)</p>
+                </div>
               </div>
+              <Badge variant="cyan" className="font-mono text-[8px]">
+                INCIDENT RESOLVED
+              </Badge>
             </div>
-            <Badge variant="cyan" className="font-mono text-[8px]">
-              INCIDENT RESOLVED
-            </Badge>
-          </div>
+          )}
+          
+          {(filterType === "All" || filterType === "Patch") && (
+            <div className="p-3.5 bg-bg-secondary/40 border border-border-custom/50 rounded-input flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <CheckCircle className="h-4 w-4 text-brand-success" />
+                <div>
+                  <p className="text-white font-bold">Emergency Kernel Security Patch</p>
+                  <p className="text-[9px] text-text-muted">Executed on 2026-05-10T04:00:00Z • 5 mins Downtime</p>
+                </div>
+              </div>
+              <Badge variant="cyan" className="font-mono text-[8px]">
+                PATCH
+              </Badge>
+            </div>
+          )}
         </div>
       </Card>
     </div>

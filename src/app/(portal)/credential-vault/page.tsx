@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { KeyRound, Shield, Eye, EyeOff, Plus, Lock, Copy, Check } from "lucide-react";
+import { KeyRound, Shield, Eye, EyeOff, Plus, Lock, Copy, Check, Edit, Trash2 } from "lucide-react";
 import { useUser } from "@/src/components/providers/auth-provider";
 import { usePortalData } from "@/src/components/providers/portal-data-provider";
 import { Card, CardHeader, CardContent } from "@/src/components/ui/card";
@@ -11,16 +11,18 @@ import toast from "react-hot-toast";
 
 export default function CredentialVaultPage() {
   const { user } = useUser();
-  const { credentialVault, addCredential } = usePortalData();
+  const { credentialVault, addCredential, updateCredential, deleteCredential } = usePortalData();
 
   const [visibleSecrets, setVisibleSecrets] = React.useState<Record<string, boolean>>({});
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
 
   const [showModal, setShowModal] = React.useState(false);
+  const [editModalId, setEditModalId] = React.useState<string | null>(null);
   const [serviceName, setServiceName] = React.useState("");
   const [environment, setEnvironment] = React.useState<"Production" | "Staging" | "Development">("Production");
   const [usernameOrKey, setUsernameOrKey] = React.useState("");
   const [secret, setSecret] = React.useState("");
+  const [notes, setNotes] = React.useState("");
 
   const toggleVisibility = (id: string) => {
     setVisibleSecrets((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -33,23 +35,59 @@ export default function CredentialVaultPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const openAddModal = () => {
+    setEditModalId(null);
+    setServiceName("");
+    setEnvironment("Production");
+    setUsernameOrKey("");
+    setSecret("");
+    setNotes("Created via secure portal vault.");
+    setShowModal(true);
+  };
+
+  const openEditModal = (item: any) => {
+    setEditModalId(item.id);
+    setServiceName(item.serviceName);
+    setEnvironment(item.environment);
+    setUsernameOrKey(item.usernameOrKey);
+    setSecret(item.encryptedSecret);
+    setNotes(item.notes || "");
+    setShowModal(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this credential?")) {
+      deleteCredential(id);
+      toast.success("Credential deleted successfully");
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!serviceName || !secret) return;
 
-    addCredential({
-      serviceName,
-      environment,
-      usernameOrKey,
-      encryptedSecret: secret,
-      notes: "Created via secure portal vault.",
-    });
+    if (editModalId) {
+      updateCredential(editModalId, {
+        serviceName,
+        environment,
+        usernameOrKey,
+        encryptedSecret: secret,
+        notes,
+      });
+      toast.success("Credential updated successfully");
+    } else {
+      addCredential({
+        serviceName,
+        environment,
+        usernameOrKey,
+        encryptedSecret: secret,
+        notes,
+      });
+      toast.success("Credential encrypted and enqueued into Vault");
+    }
 
     setShowModal(false);
-    setServiceName("");
-    setUsernameOrKey("");
-    setSecret("");
-    toast.success("Credential encrypted and enqueued into Vault");
+    setEditModalId(null);
   };
 
   return (
@@ -64,7 +102,7 @@ export default function CredentialVaultPage() {
         </div>
 
         <Button
-          onClick={() => setShowModal(true)}
+          onClick={openAddModal}
           variant="accent"
           className="font-mono text-xs uppercase font-bold cursor-pointer"
         >
@@ -92,15 +130,42 @@ export default function CredentialVaultPage() {
                   <KeyRound className="h-4 w-4 text-accent-primary" />
                   <h4 className="font-sans text-sm font-bold text-white">{item.serviceName}</h4>
                 </div>
-                <Badge variant={item.environment === "Production" ? "error" : "cyan"} className="font-mono text-[8px]">
-                  ENV: {item.environment}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant={item.environment === "Production" ? "error" : "cyan"} className="font-mono text-[8px]">
+                    ENV: {item.environment}
+                  </Badge>
+                  <button
+                    onClick={() => openEditModal(item)}
+                    className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-accent-primary/10 hover:bg-accent-primary/25 text-accent-primary border border-accent-primary/30"
+                    title="Edit Credential"
+                  >
+                    <Edit className="h-3 w-3" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(item.id)}
+                    className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-red-500/10 hover:bg-red-500/25 text-red-400 border border-red-500/30"
+                    title="Delete Credential"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono text-xs">
-                <div className="p-2.5 bg-bg-secondary/50 border border-border-custom/50 rounded">
-                  <span className="text-[9px] text-text-muted uppercase block">// USERNAME / KEY IDENTIFIER</span>
-                  <span className="text-white font-medium">{item.usernameOrKey}</span>
+                <div className="p-2.5 bg-bg-secondary/50 border border-border-custom/50 rounded flex items-center justify-between">
+                  <div className="space-y-0.5 overflow-hidden">
+                    <span className="text-[9px] text-text-muted uppercase block">// USERNAME / KEY IDENTIFIER</span>
+                    <span className="text-white font-medium truncate block">{item.usernameOrKey}</span>
+                  </div>
+                  <div className="flex items-center space-x-1 shrink-0 ml-2">
+                    <button
+                      onClick={() => handleCopy(item.id + "_user", item.usernameOrKey)}
+                      className="p-1.5 hover:text-accent-primary text-text-muted transition-colors cursor-pointer"
+                      title="Copy Username"
+                    >
+                      {copiedId === item.id + "_user" ? <Check className="h-4 w-4 text-brand-success" /> : <Copy className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="p-2.5 bg-bg-secondary/50 border border-border-custom/50 rounded flex items-center justify-between">
@@ -136,10 +201,10 @@ export default function CredentialVaultPage() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
-          <Card className="w-full max-w-lg bg-bg-card border-border-custom p-6 space-y-4">
-            <h3 className="font-mono text-sm font-bold text-white uppercase tracking-wider">
-              // ADD ENCRYPTED VAULT ITEM
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <Card className="w-full max-w-lg bg-bg-card border-border-custom rounded-card p-6 shadow-glow space-y-4">
+            <h3 className="font-mono text-xs uppercase tracking-wider text-accent-primary font-bold">
+              // {editModalId ? "EDIT ENCRYPTED VAULT ITEM" : "ADD ENCRYPTED VAULT ITEM"}
             </h3>
 
             <form onSubmit={handleSubmit} className="space-y-4 font-mono text-xs">
@@ -151,7 +216,7 @@ export default function CredentialVaultPage() {
                   placeholder="e.g. AWS Production API Secret Key..."
                   value={serviceName}
                   onChange={(e) => setServiceName(e.target.value)}
-                  className="w-full bg-bg-secondary border border-border-custom text-white px-3 py-2 text-xs rounded-input outline-none font-sans"
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
                 />
               </div>
 
@@ -160,7 +225,7 @@ export default function CredentialVaultPage() {
                 <select
                   value={environment}
                   onChange={(e: any) => setEnvironment(e.target.value)}
-                  className="w-full bg-bg-secondary border border-border-custom text-white px-3 py-2 text-xs rounded-input outline-none font-mono"
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-mono"
                 >
                   <option value="Production">Production</option>
                   <option value="Staging">Staging</option>
@@ -175,7 +240,7 @@ export default function CredentialVaultPage() {
                   placeholder="e.g. admin@binaryfroster.io"
                   value={usernameOrKey}
                   onChange={(e) => setUsernameOrKey(e.target.value)}
-                  className="w-full bg-bg-secondary border border-border-custom text-white px-3 py-2 text-xs rounded-input outline-none font-sans"
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
                 />
               </div>
 
@@ -187,7 +252,17 @@ export default function CredentialVaultPage() {
                   placeholder="••••••••••••••••"
                   value={secret}
                   onChange={(e) => setSecret(e.target.value)}
-                  className="w-full bg-bg-secondary border border-border-custom text-white px-3 py-2 text-xs rounded-input outline-none font-mono"
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[9px] text-text-muted uppercase mb-1">Notes</label>
+                <textarea
+                  placeholder="Additional context or instructions..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans min-h-[60px]"
                 />
               </div>
 
@@ -195,12 +270,12 @@ export default function CredentialVaultPage() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 bg-bg-secondary text-text-muted hover:text-white font-mono text-xs rounded-input cursor-pointer"
+                  className="px-4 py-2 bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom font-mono text-xs rounded transition-colors cursor-pointer"
                 >
                   [CANCEL]
                 </button>
-                <Button type="submit" variant="accent" className="font-mono text-xs font-bold uppercase cursor-pointer">
-                  ENCRYPT & SAVE
+                <Button type="submit" className="bg-accent-primary hover:bg-accent-hover text-bg-primary font-mono text-xs uppercase font-bold rounded-input shadow-glow cursor-pointer">
+                  {editModalId ? "SAVE CHANGES" : "ENCRYPT & SAVE"}
                 </Button>
               </div>
             </form>

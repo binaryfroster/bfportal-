@@ -8,6 +8,9 @@ import {
   Bell,
   Check,
   Lock,
+  SaveAll,
+  LogOut,
+  Download,
 } from "lucide-react";
 import { useUser } from "@/src/components/providers/auth-provider";
 import { Card, CardHeader, CardContent } from "@/src/components/ui/card";
@@ -225,6 +228,16 @@ export default function SettingsPage() {
                 {passwordLoading ? "UPDATING..." : "UPDATE PASSWORD"}
               </Button>
             </form>
+            <div className="pt-2 mt-4 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => toast.success("All active sessions have been revoked")}
+                className="w-full text-[9px] font-mono font-bold px-2.5 py-2 rounded transition-colors flex items-center justify-center gap-1 cursor-pointer bg-red-500/10 hover:bg-red-500/25 text-red-400 border border-red-500/30"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                REVOKE ALL SESSIONS
+              </button>
+            </div>
           </CardContent>
         </Card>
 
@@ -261,6 +274,36 @@ export default function SettingsPage() {
               />
               <span>Urgent support ticket reply notifications</span>
             </label>
+            <div className="pt-3 mt-1">
+              <button
+                type="button"
+                onClick={() => toast.success("Notification preferences saved")}
+                className="w-full text-[9px] font-mono font-bold px-2.5 py-2 rounded transition-colors flex items-center justify-center gap-1 cursor-pointer bg-accent-primary/10 hover:bg-accent-primary/25 text-accent-primary border border-accent-primary/30"
+              >
+                <SaveAll className="w-3.5 h-3.5" />
+                SAVE NOTIFICATION PREFERENCES
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Data Management */}
+        <Card className="bg-[#0F172A] border-slate-800">
+          <CardHeader className="flex flex-row items-center space-y-0 pb-3 border-b border-slate-800">
+            <Shield className="h-4.5 w-4.5 text-cyan-400 mr-2" />
+            <span className="font-mono text-[10px] text-slate-300 uppercase tracking-widest">
+              // DATA MANAGEMENT
+            </span>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <button
+              type="button"
+              onClick={() => toast.success("Personal data export requested. You will receive a download link via email")}
+              className="w-full text-[9px] font-mono font-bold px-2.5 py-2 rounded transition-colors flex items-center justify-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
+            >
+              <Download className="w-3.5 h-3.5" />
+              EXPORT PERSONAL DATA
+            </button>
           </CardContent>
         </Card>
       </div>

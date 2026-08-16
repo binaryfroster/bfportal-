@@ -7,6 +7,9 @@ import {
   Clock,
   ChevronRight,
   PenTool,
+  Download,
+  FileEdit,
+  Printer,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@/src/components/providers/auth-provider";
@@ -142,6 +145,33 @@ export default function ContractsPage() {
                 title="Contract PDF Viewer"
                 className="w-full h-full border-none"
               />
+            </div>
+
+            {/* Action Bar */}
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => toast.success("Contract PDF downloading")}
+                className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
+              >
+                <Download className="h-3 w-3" />
+                DOWNLOAD PDF
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
+              >
+                <Printer className="h-3 w-3" />
+                PRINT CONTRACT
+              </button>
+              {selectedContract.status === "Fully Executed" && (
+                <button
+                  onClick={() => toast.success("Amendment request submitted to legal team")}
+                  className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-accent-primary/10 hover:bg-accent-primary/25 text-accent-primary border border-accent-primary/30 ml-auto"
+                >
+                  <FileEdit className="h-3 w-3" />
+                  REQUEST AMENDMENT
+                </button>
+              )}
             </div>
 
             {/* E-Signature Audit Block */}

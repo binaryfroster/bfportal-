@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { BarChart3, TrendingUp, DollarSign, Clock, Award, ShieldCheck, Download } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { BarChart3, TrendingUp, DollarSign, Clock, Award, ShieldCheck, Download, RefreshCw, Calendar } from "lucide-react";
 import { usePortalData } from "@/src/components/providers/portal-data-provider";
 import { Card, CardHeader, CardContent } from "@/src/components/ui/card";
 import { Badge } from "@/src/components/ui/badge";
@@ -10,9 +11,15 @@ import toast from "react-hot-toast";
 
 export default function AnalyticsPage() {
   const { project, milestones, tasks, invoices } = usePortalData();
+  const router = useRouter();
+  const [dateRange, setDateRange] = React.useState("Last 30 Days");
 
   const handleExport = (format: string) => {
     toast.success(`Executive Analytics exported as ${format}`);
+  };
+
+  const handleRefresh = () => {
+    toast.success("Metrics recalculated from latest data");
   };
 
   return (
@@ -40,6 +47,33 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
+      {/* Filters and Controls */}
+      <div className="flex flex-wrap justify-between items-center gap-4">
+        <div className="flex flex-wrap gap-2">
+          {["Last 7 Days", "Last 30 Days", "This Sprint", "All Time"].map((range) => (
+            <button
+              key={range}
+              onClick={() => setDateRange(range)}
+              className={`text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer ${
+                dateRange === range
+                  ? "bg-accent-primary/10 text-accent-primary border border-accent-primary/30"
+                  : "bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
+              }`}
+            >
+              <Calendar className="h-3 w-3" />
+              {range}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={handleRefresh}
+          className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-brand-success/10 hover:bg-brand-success/25 text-brand-success border border-brand-success/30"
+        >
+          <RefreshCw className="h-3 w-3" />
+          [REFRESH_TELEMETRY]
+        </button>
+      </div>
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 font-mono">
         <Card className="bg-bg-card border-border-custom p-5 space-y-2">
@@ -50,19 +84,28 @@ export default function AnalyticsPage() {
           </span>
         </Card>
 
-        <Card className="bg-bg-card border-border-custom p-5 space-y-2">
+        <Card 
+          onClick={() => router.push("/billing")}
+          className="bg-bg-card border-border-custom p-5 space-y-2 cursor-pointer hover:border-accent-primary/50 transition-colors"
+        >
           <span className="text-[9px] text-text-muted uppercase block">// BUDGET UTILIZATION</span>
           <p className="text-2xl font-bold text-white">$70,000</p>
           <span className="text-[10px] text-text-muted">Cap: $100,000 Total</span>
         </Card>
 
-        <Card className="bg-bg-card border-border-custom p-5 space-y-2">
+        <Card 
+          onClick={() => router.push("/tickets")}
+          className="bg-bg-card border-border-custom p-5 space-y-2 cursor-pointer hover:border-accent-primary/50 transition-colors"
+        >
           <span className="text-[9px] text-text-muted uppercase block">// AVG SLA RESOLUTION</span>
           <p className="text-2xl font-bold text-white">1.4 Hours</p>
           <span className="text-[10px] text-brand-success">100% within SLA Target</span>
         </Card>
 
-        <Card className="bg-bg-card border-border-custom p-5 space-y-2">
+        <Card 
+          onClick={() => router.push("/feedback")}
+          className="bg-bg-card border-border-custom p-5 space-y-2 cursor-pointer hover:border-accent-primary/50 transition-colors"
+        >
           <span className="text-[9px] text-text-muted uppercase block">// CLIENT CSAT SCORE</span>
           <p className="text-2xl font-bold text-amber-400">4.9 / 5.0 ⭐</p>
           <span className="text-[10px] text-brand-success">NPS: +92 (Promoter)</span>

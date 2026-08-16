@@ -7,6 +7,10 @@ import {
   Video,
   User,
   ShieldAlert,
+  Edit,
+  Trash2,
+  Check,
+  X,
 } from "lucide-react";
 import { useUser } from "@/src/components/providers/auth-provider";
 import { usePortalData } from "@/src/components/providers/portal-data-provider";
@@ -22,11 +26,12 @@ interface Meeting {
   dateTime: string;
   timezone: string;
   meetUrl: string;
+  status?: "Scheduled" | "Completed";
 }
 
 export default function MeetingSchedulerPage() {
   const { user } = useUser();
-  const { loading: dataLoading, meetings, bookMeeting } = usePortalData();
+  const { loading: dataLoading, meetings, bookMeeting, updateMeeting, deleteMeeting } = usePortalData();
   const [submitting, setSubmitting] = React.useState(false);
 
   // Booking states
@@ -34,6 +39,13 @@ export default function MeetingSchedulerPage() {
   const [meetingDate, setMeetingDate] = React.useState("");
   const [meetingTime, setMeetingTime] = React.useState("");
   const [agenda, setAgenda] = React.useState("");
+
+  // Editing states
+  const [editingMeeting, setEditingMeeting] = React.useState<Meeting | null>(null);
+  const [editDate, setEditDate] = React.useState("");
+  const [editTime, setEditTime] = React.useState("");
+  const [editHost, setEditHost] = React.useState("");
+  const [editAgenda, setEditAgenda] = React.useState("");
 
   const loading = dataLoading;
 
@@ -62,11 +74,39 @@ export default function MeetingSchedulerPage() {
     toast.success("Sync Session Scheduled successfully");
   };
 
+  const openEditModal = (meet: Meeting) => {
+    setEditingMeeting(meet);
+    const dateObj = new Date(meet.dateTime);
+    const yyyy = dateObj.getFullYear();
+    const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const dd = String(dateObj.getDate()).padStart(2, "0");
+    setEditDate(`${yyyy}-${mm}-${dd}`);
+    
+    const hh = String(dateObj.getHours()).padStart(2, "0");
+    const min = String(dateObj.getMinutes()).padStart(2, "0");
+    setEditTime(`${hh}:${min}`);
+    
+    setEditHost(meet.hostName);
+    setEditAgenda(meet.agenda);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingMeeting) return;
+    updateMeeting(editingMeeting.id, {
+      dateTime: `${editDate}T${editTime}`,
+      hostName: editHost,
+      agenda: editAgenda,
+    });
+    toast.success("Meeting updated successfully");
+    setEditingMeeting(null);
+  };
+
   if (loading) {
     return <Skeleton className="h-[400px] bg-bg-card border border-border-custom w-full" />;
   }
 
   return (
+    <>
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
       {/* LEFT: Booking Form */}
       <Card className="lg:col-span-2 bg-bg-card border-border-custom relative overflow-hidden self-start">
@@ -191,46 +231,82 @@ export default function MeetingSchedulerPage() {
               return (
                 <Card
                   key={meet.id}
-                  className="bg-bg-card border-border-custom p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 card-glowing-hover text-white"
+                  className={`bg-bg-card border-border-custom p-4 flex flex-col gap-4 card-glowing-hover text-white ${meet.status === "Completed" ? "opacity-60" : ""}`}
                 >
-                  <div className="flex items-start gap-3.5">
-                    <div className="h-10 w-10 rounded bg-bg-secondary border border-border-custom flex flex-col items-center justify-center text-center p-1 shrink-0">
-                      <span className="font-mono text-[8px] uppercase text-text-muted">
-                        {formattedDate.split(" ")[0]}
-                      </span>
-                      <span className="font-sans text-sm font-extrabold text-accent-primary leading-none">
-                        {formattedDate.split(" ")[2]}
-                      </span>
-                    </div>
-
-                    <div className="space-y-1">
-                      <h4 className="font-sans text-xs font-bold leading-tight">
-                        Binary Froster Sync Session
-                      </h4>
-                      <p className="text-[11px] text-text-secondary leading-normal">
-                        Agenda: {meet.agenda}
-                      </p>
-                      <div className="flex flex-wrap gap-2.5 font-mono text-[9px] text-text-muted uppercase mt-1">
-                        <span className="flex items-center gap-1">
-                          <User className="h-3 w-3" /> Host: {meet.hostName}
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex items-start gap-3.5">
+                      <div className="h-10 w-10 rounded bg-bg-secondary border border-border-custom flex flex-col items-center justify-center text-center p-1 shrink-0">
+                        <span className="font-mono text-[8px] uppercase text-text-muted">
+                          {formattedDate.split(" ")[0]}
                         </span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" /> Time: {formattedTime} ({meet.timezone})
+                        <span className="font-sans text-sm font-extrabold text-accent-primary leading-none">
+                          {formattedDate.split(" ")[2]}
                         </span>
                       </div>
+
+                      <div className="space-y-1">
+                        <h4 className="font-sans text-xs font-bold leading-tight flex items-center gap-2">
+                          Binary Froster Sync Session
+                          {meet.status === "Completed" && (
+                            <span className="text-[10px] bg-brand-success/20 text-brand-success px-1.5 py-0.5 rounded uppercase font-mono">
+                              Completed
+                            </span>
+                          )}
+                        </h4>
+                        <p className="text-[11px] text-text-secondary leading-normal">
+                          Agenda: {meet.agenda}
+                        </p>
+                        <div className="flex flex-wrap gap-2.5 font-mono text-[9px] text-text-muted uppercase mt-1">
+                          <span className="flex items-center gap-1">
+                            <User className="h-3 w-3" /> Host: {meet.hostName}
+                          </span>
+                          <span>•</span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" /> Time: {formattedTime} ({meet.timezone})
+                          </span>
+                        </div>
+                      </div>
                     </div>
+
+                    <a
+                      href={meet.meetUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-4 py-2 bg-bg-secondary hover:bg-accent-primary hover:text-bg-primary border border-accent-primary/20 hover:border-transparent text-accent-primary font-mono text-[10px] font-bold uppercase rounded-input transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm whitespace-nowrap self-start md:self-center"
+                    >
+                      <Video className="h-3.5 w-3.5" />
+                      [JOIN_MEET]
+                    </a>
                   </div>
 
-                  <a
-                    href={meet.meetUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-4 py-2 bg-bg-secondary hover:bg-accent-primary hover:text-bg-primary border border-accent-primary/20 hover:border-transparent text-accent-primary font-mono text-[10px] font-bold uppercase rounded-input transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm whitespace-nowrap self-start md:self-center"
-                  >
-                    <Video className="h-3.5 w-3.5" />
-                    [JOIN_MEET]
-                  </a>
+                  <div className="flex flex-wrap items-center gap-2 border-t border-border-custom pt-3 mt-1">
+                    <button
+                      onClick={() => openEditModal(meet)}
+                      className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-accent-primary/10 hover:bg-accent-primary/25 text-accent-primary border border-accent-primary/30"
+                    >
+                      <Edit className="h-3 w-3" /> Edit Meeting
+                    </button>
+                    {meet.status !== "Completed" && (
+                      <button
+                        onClick={() => {
+                          updateMeeting(meet.id, { status: "Completed" });
+                          toast.success("Meeting marked as completed");
+                        }}
+                        className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-brand-success/10 hover:bg-brand-success/25 text-brand-success border border-brand-success/30"
+                      >
+                        <Check className="h-3 w-3" /> Mark Completed
+                      </button>
+                    )}
+                    <button
+                      onClick={() => {
+                        deleteMeeting(meet.id);
+                        toast.success("Meeting cancelled");
+                      }}
+                      className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-red-500/10 hover:bg-red-500/25 text-red-400 border border-red-500/30"
+                    >
+                      <Trash2 className="h-3 w-3" /> Cancel Meeting
+                    </button>
+                  </div>
                 </Card>
               );
             })}
@@ -238,5 +314,93 @@ export default function MeetingSchedulerPage() {
         )}
       </div>
     </div>
+
+    {/* EDIT MODAL */}
+    {editingMeeting && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+        <div className="bg-bg-card border border-border-custom rounded-card p-6 shadow-glow w-full max-w-md relative">
+          <button
+            onClick={() => setEditingMeeting(null)}
+            className="absolute top-4 right-4 text-text-muted hover:text-white"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          
+          <h2 className="font-mono text-xs uppercase tracking-wider text-accent-primary font-bold mb-4 flex items-center gap-2">
+            <Edit className="h-4 w-4" /> Edit Meeting
+          </h2>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block font-mono text-[9px] text-text-muted uppercase mb-1">
+                Coordinator
+              </label>
+              <select
+                value={editHost}
+                onChange={(e) => setEditHost(e.target.value)}
+                className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+              >
+                <option value="Shivam Dube">Shivam Dube (Founder & AI Engineer)</option>
+                <option value="Digvijay Kadam">Digvijay Kadam (UI/UX Designer)</option>
+                <option value="Jawad Khan Hakim">Jawad Khan Hakim (Backend Architect)</option>
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block font-mono text-[9px] text-text-muted uppercase mb-1">
+                  Target Date
+                </label>
+                <input
+                  type="date"
+                  value={editDate}
+                  onChange={(e) => setEditDate(e.target.value)}
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[9px] text-text-muted uppercase mb-1">
+                  Time (Local)
+                </label>
+                <input
+                  type="time"
+                  value={editTime}
+                  onChange={(e) => setEditTime(e.target.value)}
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block font-mono text-[9px] text-text-muted uppercase mb-1">
+                Discussion Agenda
+              </label>
+              <textarea
+                rows={3}
+                value={editAgenda}
+                onChange={(e) => setEditAgenda(e.target.value)}
+                className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+              />
+            </div>
+
+            <div className="flex gap-3 justify-end pt-2 border-t border-border-custom">
+              <button
+                onClick={() => setEditingMeeting(null)}
+                className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
+              >
+                [CANCEL]
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                className="bg-accent-primary hover:bg-accent-hover text-bg-primary font-mono text-xs uppercase font-bold rounded-input shadow-glow px-4 py-1.5"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'node:test';
+import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 
 // Mock initial data structures & state handlers

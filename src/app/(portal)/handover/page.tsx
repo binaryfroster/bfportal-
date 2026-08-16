@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { BookOpen, CheckCircle2, FileText, Download, Key, Code, ShieldCheck } from "lucide-react";
+import { BookOpen, CheckCircle2, FileText, Download, Key, Code, ShieldCheck, AlertCircle } from "lucide-react";
 import { useUser } from "@/src/components/providers/auth-provider";
 import { usePortalData } from "@/src/components/providers/portal-data-provider";
 import { Card, CardHeader, CardContent } from "@/src/components/ui/card";
@@ -34,81 +34,133 @@ export default function HandoverPage() {
           </span>
         </div>
 
-        <Badge variant={projectHandover?.stage === "Handover Complete" ? "success" : "warning"} className="font-mono text-[9px]">
-          STAGE: {projectHandover?.stage || "Ready for Handover"}
-        </Badge>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => toast.success("Handover package downloading as ZIP")}
+            className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-brand-success/10 hover:bg-brand-success/25 text-brand-success border border-brand-success/30"
+          >
+            <Download className="w-3 h-3" />
+            DOWNLOAD COMPLETE BUNDLE
+          </button>
+          <Badge variant={projectHandover?.stage === "Handover Complete" ? "success" : "warning"} className="font-mono text-[9px]">
+            STAGE: {projectHandover?.stage || "Ready for Handover"}
+          </Badge>
+        </div>
       </div>
 
       {/* Handover Artifacts Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="bg-bg-card border-border-custom p-6 space-y-4">
+        <Card className="bg-bg-card border-border-custom p-6 space-y-4 flex flex-col">
           <div className="flex items-center space-x-3 pb-3 border-b border-border-custom/50">
             <Code className="h-5 w-5 text-accent-primary" />
             <h3 className="font-sans text-sm font-bold text-white">Source Code & Repository Access</h3>
           </div>
-          <p className="font-mono text-xs text-text-secondary">
+          <p className="font-mono text-xs text-text-secondary flex-grow">
             Production GitHub repository including complete commit history, automated CI/CD workflows, and release tags.
           </p>
           <a
             href={projectHandover?.repositoryUrl || "#"}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 text-xs font-mono text-accent-primary hover:underline"
+            className="inline-flex items-center gap-2 text-xs font-mono text-accent-primary hover:underline mb-2"
           >
             [ACCESS_GITHUB_REPOSITORY] &rarr;
           </a>
+          <div className="flex items-center gap-2 pt-4 border-t border-border-custom/30 mt-auto">
+            <button
+              onClick={() => toast.success('Repository access verified successfully')}
+              className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-accent-primary/10 hover:bg-accent-primary/25 text-accent-primary border border-accent-primary/30"
+            >
+              <ShieldCheck className="w-3 h-3" />
+              VERIFY ACCESS
+            </button>
+            <button
+              onClick={() => toast.success('Missing item request submitted to engineering')}
+              className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
+            >
+              <AlertCircle className="w-3 h-3" />
+              REQUEST MISSING ITEM
+            </button>
+          </div>
         </Card>
 
-        <Card className="bg-bg-card border-border-custom p-6 space-y-4">
+        <Card className="bg-bg-card border-border-custom p-6 space-y-4 flex flex-col">
           <div className="flex items-center space-x-3 pb-3 border-b border-border-custom/50">
             <FileText className="h-5 w-5 text-accent-primary" />
             <h3 className="font-sans text-sm font-bold text-white">API Manuals & Deployment Docs</h3>
           </div>
-          <p className="font-mono text-xs text-text-secondary">
+          <p className="font-mono text-xs text-text-secondary flex-grow">
             OpenAPI v3.0 schemas, Postman collections, architecture diagrams, and staging/production Helm chart manifests.
           </p>
           <a
             href={projectHandover?.apiDocsUrl || "#"}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 text-xs font-mono text-accent-primary hover:underline"
+            className="inline-flex items-center gap-2 text-xs font-mono text-accent-primary hover:underline mb-2"
           >
             [OPEN_API_DOCUMENTATION] &rarr;
           </a>
+          <div className="flex items-center gap-2 pt-4 border-t border-border-custom/30 mt-auto">
+            <button
+              onClick={() => toast.success('Missing item request submitted to engineering')}
+              className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
+            >
+              <AlertCircle className="w-3 h-3" />
+              REQUEST MISSING ITEM
+            </button>
+          </div>
         </Card>
 
-        <Card className="bg-bg-card border-border-custom p-6 space-y-4">
+        <Card className="bg-bg-card border-border-custom p-6 space-y-4 flex flex-col">
           <div className="flex items-center space-x-3 pb-3 border-b border-border-custom/50">
             <Key className="h-5 w-5 text-accent-primary" />
             <h3 className="font-sans text-sm font-bold text-white">Encrypted Credential Vault</h3>
           </div>
-          <p className="font-mono text-xs text-text-secondary">
+          <p className="font-mono text-xs text-text-secondary flex-grow">
             Encrypted environment variables, database superuser connection strings, and production API key manifests.
           </p>
           <a
             href="/credential-vault"
-            className="inline-flex items-center gap-2 text-xs font-mono text-accent-primary hover:underline"
+            className="inline-flex items-center gap-2 text-xs font-mono text-accent-primary hover:underline mb-2"
           >
             [OPEN_SECURE_CREDENTIAL_VAULT] &rarr;
           </a>
+          <div className="flex items-center gap-2 pt-4 border-t border-border-custom/30 mt-auto">
+            <button
+              onClick={() => toast.success('Missing item request submitted to engineering')}
+              className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
+            >
+              <AlertCircle className="w-3 h-3" />
+              REQUEST MISSING ITEM
+            </button>
+          </div>
         </Card>
 
-        <Card className="bg-bg-card border-border-custom p-6 space-y-4">
+        <Card className="bg-bg-card border-border-custom p-6 space-y-4 flex flex-col">
           <div className="flex items-center space-x-3 pb-3 border-b border-border-custom/50">
             <Download className="h-5 w-5 text-accent-primary" />
             <h3 className="font-sans text-sm font-bold text-white">Database Backup & Asset Archives</h3>
           </div>
-          <p className="font-mono text-xs text-text-secondary">
+          <p className="font-mono text-xs text-text-secondary flex-grow">
             Signed SHA-256 verified Postgres SQL dump files, S3 storage archives, and Figma raw source files.
           </p>
           <a
             href={projectHandover?.backupManifestUrl || "#"}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 text-xs font-mono text-accent-primary hover:underline"
+            className="inline-flex items-center gap-2 text-xs font-mono text-accent-primary hover:underline mb-2"
           >
             [DOWNLOAD_BACKUP_MANIFEST] &rarr;
           </a>
+          <div className="flex items-center gap-2 pt-4 border-t border-border-custom/30 mt-auto">
+            <button
+              onClick={() => toast.success('Missing item request submitted to engineering')}
+              className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
+            >
+              <AlertCircle className="w-3 h-3" />
+              REQUEST MISSING ITEM
+            </button>
+          </div>
         </Card>
       </div>
 

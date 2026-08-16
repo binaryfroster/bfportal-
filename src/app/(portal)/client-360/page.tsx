@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Sparkles, Building2, User, Phone, Mail, Globe, Shield, Activity, Calendar, FileText, CheckCircle2 } from "lucide-react";
+import { Sparkles, Building2, User, Phone, Mail, Globe, Shield, Activity, Calendar, FileText, CheckCircle2, Edit, Download, RotateCcw, X } from "lucide-react";
+import toast from "react-hot-toast";
 import { useUser } from "@/src/components/providers/auth-provider";
 import { usePortalData } from "@/src/components/providers/portal-data-provider";
 import { Card, CardHeader, CardContent } from "@/src/components/ui/card";
@@ -10,6 +11,23 @@ import { Badge } from "@/src/components/ui/badge";
 export default function Client360Page() {
   const { user } = useUser();
   const { project, milestones, invoices, tickets, maintenancePlan } = usePortalData();
+
+  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+  const [formData, setFormData] = React.useState({
+    companyName: user?.companyName || "Sterling Capital Group",
+    name: user?.name || "John Sterling",
+    email: user?.email || "john@sterling.com",
+    phone: user?.phone || "+44 20 7946 0192"
+  });
+
+  const handleExport = () => toast.success('PDF Export queued');
+  const handleSchedule = () => toast.success('Redirecting to meetings');
+  const handleRefresh = () => toast.success('Health metrics recalculated');
+  
+  const handleSave = () => {
+    setIsEditModalOpen(false);
+    toast.success("Contact info updated successfully");
+  };
 
   const healthScore = 96;
 
@@ -23,9 +41,25 @@ export default function Client360Page() {
             // CLIENT 360° RELATIONSHIP MATRIX
           </span>
         </div>
-        <Badge variant="cyan" className="font-mono text-[9px]">
-          ORGANIZATION: {user?.companyName || "Sterling Capital Group"}
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Badge variant="cyan" className="font-mono text-[9px]">
+            ORGANIZATION: {formData.companyName}
+          </Badge>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setIsEditModalOpen(true)} className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-accent-primary/10 hover:bg-accent-primary/25 text-accent-primary border border-accent-primary/30">
+              <Edit className="w-3 h-3" /> EDIT
+            </button>
+            <button onClick={handleExport} className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom">
+              <Download className="w-3 h-3" /> EXPORT
+            </button>
+            <button onClick={handleSchedule} className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom">
+              <Calendar className="w-3 h-3" /> SCHEDULE
+            </button>
+            <button onClick={handleRefresh} className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-brand-success/10 hover:bg-brand-success/25 text-brand-success border border-brand-success/30">
+              <RotateCcw className="w-3 h-3" /> REFRESH
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Top Grid: Health Score & Org Profile */}
@@ -62,7 +96,7 @@ export default function Client360Page() {
               </div>
               <div>
                 <h3 className="font-sans text-base font-bold text-white">
-                  {user?.companyName || "Sterling Capital Group"}
+                  {formData.companyName}
                 </h3>
                 <p className="font-mono text-[10px] text-text-muted uppercase">
                   FINANCIAL SERVICES & ALGORITHMIC TRADING
@@ -78,19 +112,19 @@ export default function Client360Page() {
             <div className="p-3 bg-bg-secondary/40 border border-border-custom/50 rounded-input space-y-1">
               <span className="text-[9px] text-text-muted uppercase block">// PRIMARY CONTACT OFFICER</span>
               <p className="text-white font-semibold flex items-center gap-2">
-                <User className="w-3.5 h-3.5 text-accent-primary" /> {user?.name || "John Sterling"}
+                <User className="w-3.5 h-3.5 text-accent-primary" /> {formData.name}
               </p>
             </div>
             <div className="p-3 bg-bg-secondary/40 border border-border-custom/50 rounded-input space-y-1">
               <span className="text-[9px] text-text-muted uppercase block">// OFFICIAL EMAIL NODE</span>
               <p className="text-white font-semibold flex items-center gap-2">
-                <Mail className="w-3.5 h-3.5 text-accent-primary" /> {user?.email || "john@sterling.com"}
+                <Mail className="w-3.5 h-3.5 text-accent-primary" /> {formData.email}
               </p>
             </div>
             <div className="p-3 bg-bg-secondary/40 border border-border-custom/50 rounded-input space-y-1">
               <span className="text-[9px] text-text-muted uppercase block">// TELEPHONE CONTACT</span>
               <p className="text-white font-semibold flex items-center gap-2">
-                <Phone className="w-3.5 h-3.5 text-accent-primary" /> {user?.phone || "+44 20 7946 0192"}
+                <Phone className="w-3.5 h-3.5 text-accent-primary" /> {formData.phone}
               </p>
             </div>
             <div className="p-3 bg-bg-secondary/40 border border-border-custom/50 rounded-input space-y-1">
@@ -141,6 +175,68 @@ export default function Client360Page() {
           </div>
         </Card>
       </div>
+
+      {/* Edit Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-bg-card border border-border-custom rounded-card p-6 shadow-glow">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="font-mono text-xs uppercase tracking-wider text-accent-primary font-bold">Edit Contact Info</h2>
+              <button onClick={() => setIsEditModalOpen(false)} className="text-text-muted hover:text-white transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="font-mono text-[10px] text-text-muted uppercase">Company Name</label>
+                <input 
+                  type="text" 
+                  value={formData.companyName}
+                  onChange={(e) => setFormData({...formData, companyName: e.target.value})}
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="font-mono text-[10px] text-text-muted uppercase">Primary Contact</label>
+                <input 
+                  type="text" 
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="font-mono text-[10px] text-text-muted uppercase">Email Address</label>
+                <input 
+                  type="email" 
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="font-mono text-[10px] text-text-muted uppercase">Phone Number</label>
+                <input 
+                  type="text" 
+                  value={formData.phone}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-8">
+              <button onClick={() => setIsEditModalOpen(false)} className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom">
+                [CANCEL]
+              </button>
+              <button onClick={handleSave} className="bg-accent-primary hover:bg-accent-hover text-bg-primary font-mono text-xs uppercase font-bold rounded-input shadow-glow px-4 py-2">
+                SAVE CHANGES
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

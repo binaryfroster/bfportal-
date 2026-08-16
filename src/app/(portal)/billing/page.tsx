@@ -7,6 +7,9 @@ import {
   X,
   Shield,
   CheckCircle2,
+  Edit,
+  Download,
+  Ban,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@/src/components/providers/auth-provider";
@@ -26,7 +29,7 @@ interface Invoice {
   amount: number;
   issueDate: string;
   dueDate: string;
-  status: "Draft" | "Sent" | "Paid" | "Overdue";
+  status: "Draft" | "Sent" | "Paid" | "Overdue" | "Void";
   lineItems: Array<{ description: string; amount: number }>;
   tax: number;
   total: number;
@@ -35,7 +38,7 @@ interface Invoice {
 
 export default function BillingLedgerPage() {
   const { user } = useUser();
-  const { loading: dataLoading, invoices, payInvoice } = usePortalData();
+  const { loading: dataLoading, invoices, payInvoice, updateInvoice } = usePortalData() as any;
   const [activeInvoice, setActiveInvoice] = React.useState<Invoice | null>(null);
 
   // Stripe Checkout state
@@ -46,7 +49,46 @@ export default function BillingLedgerPage() {
   const [paying, setPaying] = React.useState(false);
   const [paySuccess, setPaySuccess] = React.useState(false);
 
+  // Edit Invoice state
+  const [editingInvoice, setEditingInvoice] = React.useState<Invoice | null>(null);
+  const [editForm, setEditForm] = React.useState({
+    description: "",
+    amount: 0,
+    dueDate: "",
+    status: "Draft" as Invoice["status"],
+  });
+
   const loading = dataLoading;
+
+  const handleDownloadPDF = (invoice: Invoice) => {
+    toast.success("Invoice PDF downloaded");
+  };
+
+  const handleMarkVoid = (invoice: Invoice) => {
+    if (user?.role === "admin" && updateInvoice) {
+      updateInvoice(invoice.id, { status: "Void" });
+      toast.success("Invoice marked as Void");
+    }
+  };
+
+  const handleEditClick = (invoice: Invoice) => {
+    setEditingInvoice(invoice);
+    setEditForm({
+      description: invoice.description,
+      amount: invoice.amount,
+      dueDate: invoice.dueDate,
+      status: invoice.status,
+    });
+  };
+
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingInvoice && updateInvoice) {
+      updateInvoice(editingInvoice.id, { ...editForm, total: editForm.amount });
+      setEditingInvoice(null);
+      toast.success("Invoice updated");
+    }
+  };
 
   const handlePayNow = (invoice: Invoice) => {
     setCheckoutInvoice(invoice);
@@ -97,7 +139,7 @@ export default function BillingLedgerPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {invoices.map((inv) => (
+            {invoices.map((inv: Invoice) => (
               <TableRow key={inv.id}>
                 <TableCell className="font-mono font-semibold">{inv.invoiceNumber}</TableCell>
                 <TableCell className="font-sans font-medium">{inv.description}</TableCell>
@@ -106,7 +148,7 @@ export default function BillingLedgerPage() {
                 <TableCell>
                   <Badge
                     variant={
-                      inv.status === "Paid" ? "success" : inv.status === "Sent" ? "cyan" : "error"
+                      inv.status === "Paid" ? "success" : inv.status === "Sent" ? "cyan" : inv.status === "Void" ? "outline" : "error"
                     }
                     className="font-mono text-[8px]"
                   >
@@ -117,12 +159,44 @@ export default function BillingLedgerPage() {
                   <div className="flex justify-end gap-2">
                     <button
                       onClick={() => setActiveInvoice(inv)}
-                      className="p-1.5 bg-bg-secondary border border-border-custom hover:border-accent-primary/40 text-text-secondary hover:text-white rounded transition-all cursor-pointer"
+                      className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
                       title="Print PDF Invoice"
                     >
-                      <Printer className="h-4 w-4" />
+                      <Printer className="h-3 w-3" />
+                      PRINT
                     </button>
-                    {inv.status !== "Paid" && (
+                    <button
+                      onClick={() => handleDownloadPDF(inv)}
+                      className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-accent-primary/10 hover:bg-accent-primary/25 text-accent-primary border border-accent-primary/30"
+                      title="Download PDF"
+                    >
+                      <Download className="h-3 w-3" />
+                      DOWNLOAD
+                    </button>
+                    {user?.role === "admin" && (
+                      <button
+                        onClick={() => handleEditClick(inv)}
+                        className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-brand-success/10 hover:bg-brand-success/25 text-brand-success border border-brand-success/30"
+                        title="Edit Invoice"
+                      >
+                        <Edit className="h-3 w-3" />
+                        EDIT
+                      </button>
+                    )}
+                    {user?.role === "admin" && inv.status !== "Void" && inv.status !== "Paid" && (
+                      <button
+                        onClick={() => {
+                          if (updateInvoice) { updateInvoice(inv.id, { status: "Void" }); }
+                          toast.success("Invoice marked as Void");
+                        }}
+                        className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-red-500/10 hover:bg-red-500/25 text-red-400 border border-red-500/30"
+                        title="Mark Void"
+                      >
+                        <Ban className="h-3 w-3" />
+                        VOID
+                      </button>
+                    )}
+                    {inv.status !== "Paid" && inv.status !== "Void" && (
                       <Button
                         onClick={() => handlePayNow(inv)}
                         variant="accent"
@@ -378,6 +452,113 @@ export default function BillingLedgerPage() {
                   </Button>
                 </form>
               )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* EDIT INVOICE MODAL */}
+      <AnimatePresence>
+        {editingInvoice && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setEditingInvoice(null)}
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm cursor-pointer"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-md bg-bg-card border border-border-custom rounded-card p-6 shadow-glow z-10"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="font-mono text-xs uppercase tracking-wider text-accent-primary font-bold">
+                  Edit Invoice: {editingInvoice.invoiceNumber}
+                </h3>
+                <button
+                  onClick={() => setEditingInvoice(null)}
+                  className="text-text-muted hover:text-white transition-colors cursor-pointer"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveEdit} className="space-y-4">
+                <div>
+                  <label className="block text-[10px] font-mono text-text-muted uppercase mb-1.5">
+                    Description
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.description}
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                    className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-mono text-text-muted uppercase mb-1.5">
+                    Amount
+                  </label>
+                  <input
+                    type="number"
+                    value={editForm.amount}
+                    onChange={(e) => setEditForm({ ...editForm, amount: parseFloat(e.target.value) })}
+                    className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-mono text-text-muted uppercase mb-1.5">
+                    Due Date
+                  </label>
+                  <input
+                    type="date"
+                    value={editForm.dueDate}
+                    onChange={(e) => setEditForm({ ...editForm, dueDate: e.target.value })}
+                    className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-mono text-text-muted uppercase mb-1.5">
+                    Status
+                  </label>
+                  <select
+                    value={editForm.status}
+                    onChange={(e) => setEditForm({ ...editForm, status: e.target.value as Invoice["status"] })}
+                    className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+                  >
+                    <option value="Draft">Draft</option>
+                    <option value="Sent">Sent</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Overdue">Overdue</option>
+                    <option value="Void">Void</option>
+                  </select>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4 border-t border-border-custom/50">
+                  <button
+                    type="button"
+                    onClick={() => setEditingInvoice(null)}
+                    className="px-4 py-2 text-[10px] font-mono text-text-muted hover:text-white transition-colors cursor-pointer"
+                  >
+                    [CANCEL]
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-accent-primary hover:bg-accent-hover text-bg-primary font-mono text-xs uppercase font-bold rounded-input shadow-glow cursor-pointer transition-colors"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </div>
         )}

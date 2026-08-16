@@ -95,6 +95,7 @@ export interface Meeting {
   dateTime: string;
   timezone: string;
   meetUrl: string;
+  status?: "Scheduled" | "Completed";
 }
 
 export interface Reply {
@@ -184,12 +185,15 @@ interface PortalDataContextType {
   resolveTicket: (ticketId: string) => void;
   sendMessage: (message: Message) => void;
   bookMeeting: (meeting: Meeting) => void;
+  updateMeeting: (id: string, updates: Partial<Meeting>) => void;
+  deleteMeeting: (id: string) => void;
   approveDeliverable: (id: string, userName: string) => void;
   requestChanges: (id: string, userName: string, feedback: ApprovalDeliverable["feedback"]) => void;
   submitTaskFeedback: (taskId: string, feedback: { text: string; priority: string; date: string }) => void;
   moveTask: (taskId: string, column: Task["column"]) => void;
   uploadFile: (file: FileDoc) => void;
   createInvoice: (invoice: Invoice) => void;
+  updateInvoice: (id: string, updates: Partial<Invoice>) => void;
   markInvoicePaid: (invoiceId: string) => void;
   createMilestone: (milestone: Milestone) => void;
   updateTicketStatus: (ticketId: string, status: SupportTicket["status"]) => void;
@@ -198,6 +202,8 @@ interface PortalDataContextType {
   updateChangeRequest: (id: string, updates: Partial<ChangeRequest>) => void;
   updateApprovalDeliverable: (id: string, updates: Partial<ApprovalDeliverable>) => void;
   updateTicket: (ticketId: string, updates: Partial<SupportTicket>) => void;
+  deleteFile: (id: string) => void;
+  updateFile: (id: string, updates: Partial<FileDoc>) => void;
 
   // Enterprise Module Mutations
   createChangeRequest: (cr: Omit<ChangeRequest, "id" | "createdAt">) => void;
@@ -208,6 +214,13 @@ interface PortalDataContextType {
   toggleIntegration: (id: string) => void;
   createApiKey: (name: string) => void;
   revokeApiKey: (id: string) => void;
+  updateApiKey: (id: string, updates: Partial<ApiKeyItem>) => void;
+  deleteApiKey: (id: string) => void;
+  regenerateApiKey: (id: string) => void;
+  updateCredential: (id: string, updates: Partial<Omit<CredentialVaultItem, "id" | "lastRotatedAt">>) => void;
+  deleteCredential: (id: string) => void;
+  updateFeedback: (id: string, updates: Partial<NPSFeedback>) => void;
+  deleteFeedback: (id: string) => void;
 }
 
 const PortalDataContext = React.createContext<PortalDataContextType | undefined>(undefined);
@@ -513,6 +526,16 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
     setCredentialVault((prev) => [...prev, newItem]);
   };
 
+  const updateCredential = (id: string, updates: Partial<Omit<CredentialVaultItem, "id" | "lastRotatedAt">>) => {
+    setCredentialVault((prev) =>
+      prev.map((cred) => (cred.id === id ? { ...cred, ...updates } : cred))
+    );
+  };
+
+  const deleteCredential = (id: string) => {
+    setCredentialVault((prev) => prev.filter((cred) => cred.id !== id));
+  };
+
   const submitFeedback = (item: Omit<NPSFeedback, "id" | "createdAt">) => {
     const newFb: NPSFeedback = {
       ...item,
@@ -520,6 +543,16 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
       createdAt: new Date().toISOString(),
     };
     setNpsFeedback((prev) => [newFb, ...prev]);
+  };
+
+  const updateFeedback = (id: string, updates: Partial<NPSFeedback>) => {
+    setNpsFeedback((prev) =>
+      prev.map((fb) => (fb.id === id ? { ...fb, ...updates } : fb))
+    );
+  };
+
+  const deleteFeedback = (id: string) => {
+    setNpsFeedback((prev) => prev.filter((fb) => fb.id !== id));
   };
 
   const markNotificationRead = (id: string) => {
@@ -546,6 +579,18 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
 
   const revokeApiKey = (id: string) => {
     setApiKeys((prev) => prev.map((k) => (k.id === id ? { ...k, status: "revoked" as const } : k)));
+  };
+
+  const updateApiKey = (id: string, updates: Partial<ApiKeyItem>) => {
+    setApiKeys((prev) => prev.map((k) => (k.id === id ? { ...k, ...updates } : k)));
+  };
+
+  const deleteApiKey = (id: string) => {
+    setApiKeys((prev) => prev.filter((k) => k.id !== id));
+  };
+
+  const regenerateApiKey = (id: string) => {
+    setApiKeys((prev) => prev.map((k) => (k.id === id ? { ...k, keyPrefix: `bf_live_${Math.random().toString(36).substring(2, 6)}...`, status: "active" as const } : k)));
   };
 
   // Load data on user change
@@ -657,6 +702,14 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
     setMeetings((prev) => [...prev, meeting]);
   };
 
+  const updateMeeting = (id: string, updates: Partial<Meeting>) => {
+    setMeetings((prev) => prev.map((m) => (m.id === id ? { ...m, ...updates } : m)));
+  };
+
+  const deleteMeeting = (id: string) => {
+    setMeetings((prev) => prev.filter((m) => m.id !== id));
+  };
+
   const approveDeliverable = (id: string, userName: string) => {
     setApprovals((prev) =>
       prev.map((d) =>
@@ -710,6 +763,12 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
     setInvoices((prev) => [...prev, invoice]);
   };
 
+  const updateInvoice = (id: string, updates: Partial<Invoice>) => {
+    setInvoices((prev) =>
+      prev.map((inv) => (inv.id === id ? { ...inv, ...updates } : inv))
+    );
+  };
+
   const markInvoicePaid = (invoiceId: string) => {
     payInvoice(invoiceId);
   };
@@ -754,6 +813,16 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
     );
   };
 
+  const deleteFile = (id: string) => {
+    setFiles((prev) => prev.filter((f) => f.id !== id));
+  };
+
+  const updateFile = (id: string, updates: Partial<FileDoc>) => {
+    setFiles((prev) =>
+      prev.map((f) => (f.id === id ? { ...f, ...updates } : f))
+    );
+  };
+
   return (
     <PortalDataContext.Provider
       value={{
@@ -785,12 +854,17 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
         resolveTicket,
         sendMessage,
         bookMeeting,
+        updateMeeting,
+        deleteMeeting,
         approveDeliverable,
         requestChanges,
         submitTaskFeedback,
         moveTask,
         uploadFile,
+        deleteFile,
+        updateFile,
         createInvoice,
+        updateInvoice,
         markInvoicePaid,
         createMilestone,
         updateTicketStatus,
@@ -807,6 +881,13 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
         toggleIntegration,
         createApiKey,
         revokeApiKey,
+        updateApiKey,
+        deleteApiKey,
+        regenerateApiKey,
+        updateCredential,
+        deleteCredential,
+        updateFeedback,
+        deleteFeedback,
       }}
     >
       {children}
