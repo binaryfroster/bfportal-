@@ -1,137 +1,165 @@
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Project, Milestone } from "../types";
-import { api } from "../lib/api";
-import { Compass, Calendar, CheckCircle2, PlayCircle, Clock, AlertTriangle, ChevronDown, ChevronUp, Terminal } from "lucide-react";
+import {
+  Compass,
+  Layout,
+  Code2,
+  TestTube2,
+  Rocket,
+  Headphones,
+  CheckCircle2,
+  PlayCircle,
+  AlertTriangle,
+  Clock,
+  ChevronDown,
+  ChevronUp,
+  FolderKanban,
+  Edit,
+  Play,
+  Check,
+  RotateCcw,
+  X
+} from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface ProjectTrackerProps {
   project: Project;
+  onRefresh?: () => void;
 }
 
-export default function ProjectTracker({ project }: ProjectTrackerProps) {
-  const [milestones, setMilestones] = useState<Milestone[]>([]);
+const PHASES = [
+  { name: "Discover", icon: Compass, desc: "Scope & Architecture" },
+  { name: "Design", icon: Layout, desc: "High Fidelity Prototypes" },
+  { name: "Build", icon: Code2, desc: "Core Engine & Ledger" },
+  { name: "Test", icon: TestTube2, desc: "PenTest & Load Stress" },
+  { name: "Launch", icon: Rocket, desc: "DNS Cutover & Ingress" },
+  { name: "Support", icon: Headphones, desc: "SLA Tier 1 Operations" },
+];
+
+export default function ProjectTracker({ project, onRefresh }: ProjectTrackerProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [milestones, setMilestones] = useState<Milestone[]>(project.milestones || []);
 
-  const PHASES = ["Discover", "Design", "Build", "Test", "Launch", "Support"];
-
-  useEffect(() => {
-    async function loadMilestones() {
-      if (!project) return;
-      try {
-        const list = await api.getMilestones(project.id);
-        setMilestones(list);
-      } catch (err) {
-        console.error("Failed loading milestones:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadMilestones();
-    
-    // Polling simulation every 15s for admin real-time modifications
-    const interval = setInterval(loadMilestones, 15000);
-    return () => clearInterval(interval);
-  }, [project]);
-
-  // Determine completed phase index
-  const currentPhaseIndex = PHASES.indexOf(project.phase);
+  // Edit states
+  const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDesc, setEditDesc] = useState("");
+  const [editDueDate, setEditDueDate] = useState("");
+  const [editStatus, setEditStatus] = useState<"Upcoming" | "In Progress" | "Completed" | "Delayed">("In Progress");
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const toggleExpand = (id: string) => {
     setExpandedId(expandedId === id ? null : id);
   };
 
-  if (loading) {
-    return (
-      <div className="bg-bg-card border border-border-custom p-6 rounded-card animate-pulse space-y-6">
-        <div className="h-12 bg-bg-secondary rounded-input"></div>
-        <div className="space-y-4">
-          <div className="h-20 bg-bg-secondary rounded-input"></div>
-          <div className="h-20 bg-bg-secondary rounded-input"></div>
-          <div className="h-20 bg-bg-secondary rounded-input"></div>
-        </div>
-      </div>
+  const handleStatusChange = (id: string, status: "Upcoming" | "In Progress" | "Completed" | "Delayed", e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setMilestones((prev) =>
+      prev.map((m) =>
+        m.id === id
+          ? { ...m, status, completedDate: status === "Completed" ? new Date().toISOString().split("T")[0] : null }
+          : m
+      )
     );
-  }
+  };
+
+  const openEditModal = (m: Milestone, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setEditingMilestone(m);
+    setEditTitle(m.title);
+    setEditDesc(m.description);
+    setEditDueDate(m.dueDate);
+    setEditStatus(m.status);
+  };
+
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingMilestone || !editTitle) return;
+
+    setSavingEdit(true);
+    setMilestones((prev) =>
+      prev.map((m) =>
+        m.id === editingMilestone.id
+          ? {
+              ...m,
+              title: editTitle,
+              description: editDesc,
+              dueDate: editDueDate,
+              status: editStatus,
+              completedDate: editStatus === "Completed" ? new Date().toISOString().split("T")[0] : null,
+            }
+          : m
+      )
+    );
+    setSavingEdit(false);
+    setEditingMilestone(null);
+  };
+
+  const currentPhaseIndex = PHASES.findIndex((p) => p.name === project.phase);
+  const activePhase = currentPhaseIndex >= 0 ? currentPhaseIndex : 2;
 
   return (
-    <div className="space-y-8">
-      {/* 1. HORIZONTAL STEPPED PHASES INDICATOR */}
-      <div className="bg-bg-card border border-border-custom p-8 rounded-card relative overflow-hidden card-glowing-hover">
-        <div className="absolute top-0 right-0 h-32 w-32 bg-accent-primary/5 rounded-full blur-3xl pointer-events-none"></div>
-
-        <div className="flex items-center gap-2 mb-8">
-          <Compass className="h-4 w-4 text-accent-primary" />
-          <span className="font-mono text-[10px] text-text-secondary uppercase tracking-widest">// DEPLOYMENT PHASE STEPPER</span>
-        </div>
-
-        {/* Phase Stepper Wrapper */}
-        <div className="relative w-full overflow-x-auto pb-4 pt-2">
-          <div className="min-w-[700px] flex items-center justify-between relative">
-            {/* Background Line */}
-            <div className="absolute left-[5%] right-[5%] top-4 h-[2px] bg-border-custom/60 z-0"></div>
-            
-            {/* Saturated progress filling line */}
-            <div 
-              className="absolute left-[5%] top-4 h-[2px] bg-accent-primary z-0 transition-all duration-700 ease-out"
-              style={{
-                width: `${(currentPhaseIndex / (PHASES.length - 1)) * 90}%`
-              }}
-            ></div>
-
-            {PHASES.map((phase, idx) => {
-              const isCompleted = idx < currentPhaseIndex;
-              const isActive = idx === currentPhaseIndex;
-              const isFuture = idx > currentPhaseIndex;
-
-              return (
-                <div key={phase} className="flex flex-col items-center text-center z-10 w-[15%]">
-                  {/* Step bubble */}
-                  <div className={`h-8.5 w-8.5 rounded-full flex items-center justify-center border transition-all duration-300 ${
-                    isCompleted ? "bg-accent-primary border-accent-primary text-bg-primary shadow-glow" :
-                    isActive ? "bg-bg-secondary border-accent-primary text-accent-primary cyan-pulse" :
-                    "bg-bg-secondary border-border-custom text-text-muted"
-                  }`}>
-                    {isCompleted ? (
-                      <CheckCircle2 className="h-4.5 w-4.5 stroke-[2.5]" />
-                    ) : (
-                      <span className="font-mono text-xs font-bold">{idx + 1}</span>
-                    )}
-                  </div>
-
-                  {/* Step Label */}
-                  <span className={`font-sans text-xs font-semibold mt-3 ${
-                    isActive ? "text-accent-primary" :
-                    isCompleted ? "text-text-primary" :
-                    "text-text-muted"
-                  }`}>
-                    {phase}
-                  </span>
-
-                  {/* Small metadata status tag */}
-                  <span className="font-mono text-[8px] uppercase text-text-muted mt-1 font-medium">
-                    {isCompleted && "Completed"}
-                    {isActive && "PULSING [LIVE]"}
-                    {isFuture && "Awaiting"}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <FolderKanban className="h-4.5 w-4.5 text-accent-primary" />
+          <span className="font-mono text-xs text-text-secondary uppercase tracking-widest">// PROJECT WORKSPACE ARCHITECTURE</span>
         </div>
       </div>
 
-      {/* 2. EXPANDABLE TIMELINE */}
+      {/* Stepper horizontal (6 phases) */}
+      <div className="bg-bg-card border border-border-custom p-6 rounded-card shadow-sm">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+          {PHASES.map((phase, index) => {
+            const isCompleted = index < activePhase;
+            const isCurrent = index === activePhase;
+            const Icon = phase.icon;
+
+            return (
+              <div 
+                key={phase.name} 
+                className={`p-3.5 rounded-input border transition-all flex flex-col justify-between space-y-2 ${
+                  isCurrent ? "bg-accent-primary/10 border-accent-primary shadow-glow" :
+                  isCompleted ? "bg-brand-success/5 border-brand-success/30" :
+                  "bg-bg-secondary/40 border-border-custom/50 opacity-60"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[9px] text-text-muted uppercase">0{index + 1}</span>
+                  {isCompleted ? (
+                    <CheckCircle2 className="h-4 w-4 text-brand-success" />
+                  ) : isCurrent ? (
+                    <span className="flex h-2 w-2 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-primary opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-primary"></span>
+                    </span>
+                  ) : null}
+                </div>
+
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <Icon className={`h-3.5 w-3.5 ${isCurrent ? "text-accent-primary" : isCompleted ? "text-brand-success" : "text-text-muted"}`} />
+                    <h4 className="font-sans text-xs font-bold text-text-primary">{phase.name}</h4>
+                  </div>
+                  <p className="font-mono text-[9px] text-text-secondary line-clamp-1">{phase.desc}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Milestones Accordion */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Terminal className="h-4 w-4 text-accent-primary" />
-          <span className="font-mono text-[10px] text-text-secondary uppercase tracking-widest">// CONTRACTED MILESTONES HISTORY</span>
+        <div className="flex justify-between items-center">
+          <span className="font-mono text-[10px] text-text-muted uppercase tracking-wider">// CONTRACTED MILESTONES HISTORY ({milestones.length})</span>
         </div>
 
         <div className="space-y-3">
           {milestones.map((m) => {
             const isExpanded = expandedId === m.id;
-            
+
             return (
               <div 
                 key={m.id}
@@ -140,12 +168,11 @@ export default function ProjectTracker({ project }: ProjectTrackerProps) {
                 }`}
               >
                 {/* Header click bar */}
-                <button
+                <div 
                   onClick={() => toggleExpand(m.id)}
-                  className="w-full text-left p-5 flex items-center justify-between gap-4 cursor-pointer outline-none select-none"
+                  className="w-full text-left p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer outline-none select-none"
                 >
-                  <div className="flex items-center gap-4">
-                    {/* Status badge and icon */}
+                  <div className="flex items-center gap-4 min-w-0">
                     <div className="flex-shrink-0">
                       {m.status === "Completed" && <CheckCircle2 className="h-5 w-5 text-brand-success" />}
                       {m.status === "In Progress" && <PlayCircle className="h-5 w-5 text-accent-primary animate-pulse" />}
@@ -177,14 +204,44 @@ export default function ProjectTracker({ project }: ProjectTrackerProps) {
                     </div>
                   </div>
 
-                  <div>
-                    {isExpanded ? (
-                      <ChevronUp className="h-4 w-4 text-text-muted" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4 text-text-muted" />
+                  {/* Right Header Action Buttons */}
+                  <div className="flex items-center gap-2">
+                    {m.status !== "In Progress" && (
+                      <button
+                        type="button"
+                        onClick={(e) => handleStatusChange(m.id, "In Progress", e)}
+                        className="text-[9px] font-mono font-bold bg-accent-primary/10 hover:bg-accent-primary/25 text-accent-primary border border-accent-primary/30 px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer"
+                      >
+                        <Play className="h-2.5 w-2.5" />
+                        In Progress
+                      </button>
                     )}
+
+                    {m.status !== "Completed" && (
+                      <button
+                        type="button"
+                        onClick={(e) => handleStatusChange(m.id, "Completed", e)}
+                        className="text-[9px] font-mono font-bold bg-brand-success/10 hover:bg-brand-success/25 text-brand-success border border-brand-success/30 px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer"
+                      >
+                        <Check className="h-2.5 w-2.5 stroke-[2.5]" />
+                        Mark Done
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={(e) => openEditModal(m, e)}
+                      className="text-[9px] font-mono text-text-muted hover:text-white bg-bg-secondary hover:bg-slate-800 border border-border-custom px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer"
+                    >
+                      <Edit className="h-2.5 w-2.5" />
+                      Edit
+                    </button>
+
+                    <div className="p-1 text-text-muted ml-1">
+                      {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </div>
                   </div>
-                </button>
+                </div>
 
                 {/* Expanded content */}
                 <AnimatePresence initial={false}>
@@ -195,7 +252,7 @@ export default function ProjectTracker({ project }: ProjectTrackerProps) {
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.25 }}
                     >
-                      <div className="px-5 pb-5 pt-1 border-t border-border-custom/50 bg-bg-secondary/40 text-xs text-text-secondary leading-relaxed space-y-3">
+                      <div className="px-5 pb-5 pt-1 border-t border-border-custom/50 bg-bg-secondary/40 text-xs text-text-secondary leading-relaxed space-y-4">
                         <p className="font-sans text-text-secondary text-xs">{m.description}</p>
                         
                         <div className="p-3.5 bg-bg-primary/50 border border-border-custom rounded-input space-y-1.5 font-mono text-[10px]">
@@ -212,6 +269,51 @@ export default function ProjectTracker({ project }: ProjectTrackerProps) {
                             <span className="text-brand-success">VERIFIED BY BINARY FROSTER</span>
                           </div>
                         </div>
+
+                        {/* Expanded Actions Bar */}
+                        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border-custom/40">
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(m)}
+                            className="px-3 py-1.5 bg-bg-card hover:bg-slate-800 text-text-primary font-mono text-[10px] uppercase font-bold rounded transition-colors flex items-center gap-1.5 cursor-pointer border border-border-custom"
+                          >
+                            <Edit className="h-3 w-3 text-accent-primary" />
+                            Edit Milestone
+                          </button>
+
+                          {m.status !== "In Progress" && (
+                            <button
+                              type="button"
+                              onClick={() => handleStatusChange(m.id, "In Progress")}
+                              className="px-3 py-1.5 bg-accent-primary/20 hover:bg-accent-primary/30 text-accent-primary border border-accent-primary/40 font-mono text-[10px] uppercase font-bold rounded transition-colors flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <Play className="h-3 w-3" />
+                              Set In Progress
+                            </button>
+                          )}
+
+                          {m.status !== "Completed" && (
+                            <button
+                              type="button"
+                              onClick={() => handleStatusChange(m.id, "Completed")}
+                              className="px-3 py-1.5 bg-brand-success hover:bg-brand-success/90 text-bg-primary font-mono text-[10px] font-bold uppercase rounded transition-colors flex items-center gap-1.5 cursor-pointer shadow-glow"
+                            >
+                              <Check className="h-3 w-3 stroke-[2.5]" />
+                              Mark Completed
+                            </button>
+                          )}
+
+                          {m.status !== "Upcoming" && (
+                            <button
+                              type="button"
+                              onClick={() => handleStatusChange(m.id, "Upcoming")}
+                              className="px-3 py-1.5 bg-bg-card hover:bg-slate-800 text-text-secondary border border-border-custom font-mono text-[10px] uppercase rounded transition-colors flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <RotateCcw className="h-3 w-3" />
+                              Reset to Upcoming
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </motion.div>
                   )}
@@ -221,6 +323,92 @@ export default function ProjectTracker({ project }: ProjectTrackerProps) {
           })}
         </div>
       </div>
+
+      {/* Edit Milestone Modal */}
+      {editingMilestone && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-bg-card border border-border-custom rounded-card p-6 w-full max-w-lg shadow-glow space-y-4 text-text-primary">
+            <div className="flex justify-between items-center border-b border-border-custom pb-3">
+              <h3 className="font-mono text-xs uppercase tracking-wider text-accent-primary font-bold">
+                // EDIT MILESTONE: {editingMilestone.title}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingMilestone(null)}
+                className="text-text-muted hover:text-white p-1 rounded-full border border-border-custom bg-bg-secondary cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              <div>
+                <label className="block font-mono text-[10px] text-text-muted uppercase mb-1">Milestone Title</label>
+                <input
+                  type="text"
+                  required
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-mono text-[10px] text-text-muted uppercase mb-1">Status</label>
+                  <select
+                    value={editStatus}
+                    onChange={(e: any) => setEditStatus(e.target.value)}
+                    className="w-full bg-bg-secondary border border-border-custom text-text-primary px-3 py-2 text-xs rounded-input outline-none font-mono cursor-pointer"
+                  >
+                    <option value="Upcoming">Upcoming</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Delayed">Delayed</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-mono text-[10px] text-text-muted uppercase mb-1">Due Target Date</label>
+                  <input
+                    type="date"
+                    value={editDueDate}
+                    onChange={(e) => setEditDueDate(e.target.value)}
+                    className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3 py-2 text-xs rounded-input outline-none font-mono cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-mono text-[10px] text-text-muted uppercase mb-1">Description</label>
+                <textarea
+                  rows={4}
+                  value={editDesc}
+                  onChange={(e) => setEditDesc(e.target.value)}
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary p-3 text-xs rounded-input outline-none font-sans"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-border-custom">
+                <button
+                  type="button"
+                  onClick={() => setEditingMilestone(null)}
+                  className="px-4 py-2 bg-bg-secondary hover:bg-slate-800 text-text-secondary font-mono text-xs uppercase rounded-input transition-colors cursor-pointer"
+                >
+                  [CANCEL]
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingEdit}
+                  className="px-5 py-2 bg-accent-primary hover:bg-accent-hover text-bg-primary font-mono text-xs uppercase font-bold rounded-input transition-all cursor-pointer shadow-glow"
+                >
+                  {savingEdit ? "SAVING..." : "SAVE CHANGES"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

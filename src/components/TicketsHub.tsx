@@ -16,7 +16,10 @@ import {
   Sparkles,
   Layers,
   Tag,
-  X
+  X,
+  Edit,
+  Play,
+  RotateCcw
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -43,6 +46,15 @@ export default function TicketsHub({ project, user, userRole }: TicketsHubProps)
   const [category, setCategory] = useState<"Bug Report" | "Change Request" | "General Question" | "System Outage">("Bug Report");
   const [priority, setPriority] = useState<"Low" | "Medium" | "High" | "Critical">("High");
   const [description, setDescription] = useState("");
+
+  // Edit ticket states
+  const [editingTicket, setEditingTicket] = useState<SupportTicket | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editCategory, setEditCategory] = useState<string>("Bug Report");
+  const [editPriority, setEditPriority] = useState<string>("High");
+  const [editStatus, setEditStatus] = useState<string>("In Progress");
+  const [editDescription, setEditDescription] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
 
   // Response states
   const [adminResponse, setAdminResponse] = useState("");
@@ -103,6 +115,78 @@ export default function TicketsHub({ project, user, userRole }: TicketsHubProps)
       console.error("Failed creating ticket:", err);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleStatusChange = async (status: string, ticketId?: string) => {
+    const targetId = ticketId || selectedTicket?.id;
+    if (!targetId) return;
+
+    try {
+      await api.updateTicketStatus(targetId, status);
+      setTickets((prev) =>
+        prev.map((t) => (t.id === targetId ? { ...t, status: status as any } : t))
+      );
+      if (selectedTicket && selectedTicket.id === targetId) {
+        setSelectedTicket((prev) => (prev ? { ...prev, status: status as any } : null));
+      }
+      await loadTickets();
+    } catch (err) {
+      console.error("Status change failed:", err);
+    }
+  };
+
+  const openEditModal = (t: SupportTicket, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setEditingTicket(t);
+    setEditTitle(t.title);
+    setEditCategory(t.category);
+    setEditPriority(t.priority);
+    setEditStatus(t.status);
+    setEditDescription(t.description);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTicket || !editTitle) return;
+
+    setSavingEdit(true);
+    try {
+      setTickets((prev) =>
+        prev.map((t) =>
+          t.id === editingTicket.id
+            ? {
+                ...t,
+                title: editTitle,
+                category: editCategory as any,
+                priority: editPriority as any,
+                status: editStatus as any,
+                description: editDescription,
+              }
+            : t
+        )
+      );
+
+      if (selectedTicket && selectedTicket.id === editingTicket.id) {
+        setSelectedTicket((prev) =>
+          prev
+            ? {
+                ...prev,
+                title: editTitle,
+                category: editCategory as any,
+                priority: editPriority as any,
+                status: editStatus as any,
+                description: editDescription,
+              }
+            : null
+        );
+      }
+
+      setEditingTicket(null);
+    } catch (err) {
+      console.error("Failed saving ticket edit:", err);
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -294,7 +378,9 @@ export default function TicketsHub({ project, user, userRole }: TicketsHubProps)
                       <span className={`text-[8px] font-mono font-bold px-2 py-0.5 rounded uppercase border ${
                         t.status === "Resolved"
                           ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
-                          : "bg-cyan-500/20 text-cyan-400 border-cyan-500/30"
+                          : t.status === "In Progress"
+                          ? "bg-cyan-500/20 text-cyan-400 border-cyan-500/30"
+                          : "bg-amber-500/20 text-amber-400 border-amber-500/30"
                       }`}>
                         {t.status}
                       </span>
@@ -302,15 +388,45 @@ export default function TicketsHub({ project, user, userRole }: TicketsHubProps)
 
                     <p className="text-[11px] text-slate-400 line-clamp-2 font-sans">{t.description}</p>
 
+                    {/* Quick Action Button Row on Card */}
                     <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 w-full text-[9px] font-mono text-slate-400">
                       <span className="flex items-center gap-1 text-slate-300">
                         <Layers className="h-3 w-3 text-cyan-400" />
                         {t.category}
                       </span>
 
-                      <span className={`px-1.5 py-0.5 rounded border uppercase ${sla.badge}`}>
-                        {t.priority}
-                      </span>
+                      <div className="flex items-center gap-1">
+                        {t.status !== "In Progress" && (
+                          <span
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStatusChange("In Progress", t.id);
+                            }}
+                            className="bg-cyan-500/10 hover:bg-cyan-500/25 text-cyan-400 border border-cyan-500/30 px-1.5 py-0.5 rounded cursor-pointer font-bold"
+                          >
+                            ▶ In Progress
+                          </span>
+                        )}
+
+                        {t.status !== "Resolved" && (
+                          <span
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStatusChange("Resolved", t.id);
+                            }}
+                            className="bg-emerald-500/10 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded cursor-pointer font-bold"
+                          >
+                            ✓ Done
+                          </span>
+                        )}
+
+                        <span
+                          onClick={(e) => openEditModal(t, e)}
+                          className="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-1.5 py-0.5 rounded cursor-pointer"
+                        >
+                          ✎ Edit
+                        </span>
+                      </div>
                     </div>
                   </button>
                 );
@@ -333,10 +449,61 @@ export default function TicketsHub({ project, user, userRole }: TicketsHubProps)
                   <span className={`font-mono text-[9px] px-2.5 py-1 rounded-lg border font-bold uppercase ${
                     selectedTicket.status === "Resolved"
                       ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-400"
-                      : "bg-cyan-500/20 border-cyan-500/30 text-cyan-400 animate-pulse"
+                      : selectedTicket.status === "In Progress"
+                      ? "bg-cyan-500/20 border-cyan-500/30 text-cyan-400 animate-pulse"
+                      : "bg-amber-500/20 border-amber-500/30 text-amber-400"
                   }`}>
                     {selectedTicket.status}
                   </span>
+                </div>
+              </div>
+
+              {/* ACTION CONTROL BAR */}
+              <div className="p-3 bg-[#0A0D14] border border-cyan-500/30 rounded-xl flex flex-wrap items-center justify-between gap-3">
+                <span className="font-mono text-[10px] text-cyan-400 uppercase font-bold tracking-wider">
+                  // TICKET ACTIONS
+                </span>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => openEditModal(selectedTicket)}
+                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-mono text-[10px] uppercase font-bold rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer border border-slate-700"
+                  >
+                    <Edit className="h-3 w-3 text-cyan-400" />
+                    Edit Ticket
+                  </button>
+
+                  {selectedTicket.status !== "In Progress" && (
+                    <button
+                      type="button"
+                      onClick={() => handleStatusChange("In Progress")}
+                      className="px-3 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-500/40 font-mono text-[10px] uppercase font-bold rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Play className="h-3 w-3" />
+                      Set In Progress
+                    </button>
+                  )}
+
+                  {selectedTicket.status !== "Resolved" ? (
+                    <button
+                      type="button"
+                      onClick={() => handleStatusChange("Resolved")}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-[10px] font-bold uppercase rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      Mark as Done / Resolved
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleStatusChange("Open")}
+                      className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/40 font-mono text-[10px] font-bold uppercase rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      Reopen Ticket
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -404,16 +571,6 @@ export default function TicketsHub({ project, user, userRole }: TicketsHubProps)
                       <option value="Digvijay">Digvijay Kadam (Design)</option>
                     </select>
                   </div>
-
-                  {selectedTicket.status !== "Resolved" && (
-                    <button
-                      type="button"
-                      onClick={(e) => handleRespond(e, "Resolved")}
-                      className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer"
-                    >
-                      [MARK_RESOLVED]
-                    </button>
-                  )}
                 </div>
               )}
 
@@ -452,37 +609,124 @@ export default function TicketsHub({ project, user, userRole }: TicketsHubProps)
         </div>
       </div>
 
-      {/* CREATE NEW SUPPORT TICKET MODAL */}
+      {/* Edit Ticket Modal */}
+      {editingTicket && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-[#0F172A] border border-slate-800 rounded-xl p-6 w-full max-w-lg shadow-glow space-y-4 text-white">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <h3 className="font-mono text-xs uppercase tracking-wider text-cyan-400 font-bold">
+                // EDIT TICKET: {editingTicket.title}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingTicket(null)}
+                className="text-slate-400 hover:text-white p-1 rounded-full border border-slate-800 bg-[#0A0D14] cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              <div>
+                <label className="block font-mono text-[10px] text-slate-400 uppercase mb-1">Incident Title</label>
+                <input
+                  type="text"
+                  required
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full bg-[#0A0D14] border border-slate-700 focus:border-cyan-400 text-white px-3.5 py-2 text-xs rounded-xl outline-none font-sans"
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block font-mono text-[10px] text-slate-400 uppercase mb-1">Category</label>
+                  <select
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value)}
+                    className="w-full bg-[#0A0D14] border border-slate-700 text-white px-3 py-2 text-xs rounded-xl outline-none font-mono cursor-pointer"
+                  >
+                    <option value="Bug Report">Bug Report</option>
+                    <option value="Change Request">Change Request</option>
+                    <option value="General Question">General Question</option>
+                    <option value="System Outage">System Outage</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-mono text-[10px] text-slate-400 uppercase mb-1">Priority</label>
+                  <select
+                    value={editPriority}
+                    onChange={(e) => setEditPriority(e.target.value)}
+                    className="w-full bg-[#0A0D14] border border-slate-700 text-white px-3 py-2 text-xs rounded-xl outline-none font-mono cursor-pointer"
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Critical">Critical</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-mono text-[10px] text-slate-400 uppercase mb-1">Status</label>
+                  <select
+                    value={editStatus}
+                    onChange={(e) => setEditStatus(e.target.value)}
+                    className="w-full bg-[#0A0D14] border border-slate-700 text-white px-3 py-2 text-xs rounded-xl outline-none font-mono cursor-pointer"
+                  >
+                    <option value="Open">Open</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-mono text-[10px] text-slate-400 uppercase mb-1">Description</label>
+                <textarea
+                  rows={4}
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  className="w-full bg-[#0A0D14] border border-slate-700 focus:border-cyan-400 text-white p-3 text-xs rounded-xl outline-none font-sans"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setEditingTicket(null)}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs uppercase rounded-xl transition-colors cursor-pointer"
+                >
+                  [CANCEL]
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingEdit}
+                  className="px-5 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-mono text-xs uppercase font-bold rounded-xl transition-all cursor-pointer"
+                >
+                  {savingEdit ? "SAVING..." : "SAVE CHANGES"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Raise Ticket Modal */}
       <AnimatePresence>
         {showCreateForm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.7 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowCreateForm(false)}
-              className="absolute inset-0 bg-black backdrop-blur-sm cursor-pointer"
-            />
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="relative w-full max-w-xl bg-[#0F172A] border border-slate-800 rounded-2xl p-6 shadow-2xl overflow-hidden space-y-5 z-10 text-white"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-[#0F172A] border border-slate-800 p-6 rounded-xl w-full max-w-lg space-y-4 shadow-2xl relative"
             >
-              <div className="flex justify-between items-center pb-3 border-b border-slate-800">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 bg-cyan-500/10 border border-cyan-500/20 rounded-lg">
-                    <AlertTriangle className="h-5 w-5 text-cyan-400 animate-pulse" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-white">Create New Support Incident</h3>
-                    <span className="text-[10px] font-mono text-slate-400">Direct technical pipeline to engineers</span>
-                  </div>
-                </div>
+              <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 className="font-bold text-sm text-white">// RAISE SUPPORT TICKET</h3>
                 <button
                   onClick={() => setShowCreateForm(false)}
-                  className="p-1 rounded-lg bg-slate-800 hover:text-cyan-400 border border-slate-700 cursor-pointer"
+                  className="p-1 text-slate-400 hover:text-white rounded-lg bg-[#0A0D14] border border-slate-800"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -491,12 +735,12 @@ export default function TicketsHub({ project, user, userRole }: TicketsHubProps)
               <form onSubmit={handleCreateTicket} className="space-y-4">
                 <div>
                   <label className="block text-[10px] font-mono text-slate-400 uppercase mb-1.5">
-                    Incident Title / Subject *
+                    Ticket Title / Issue Name *
                   </label>
                   <input
-                    required
                     type="text"
-                    placeholder="e.g. FCA ledger latency lag on matching engine..."
+                    required
+                    placeholder="Brief description of the issue or feature..."
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     className="w-full bg-[#0A0D14] border border-slate-700 focus:border-cyan-400 text-white px-3.5 py-2.5 text-xs rounded-xl outline-none font-sans font-semibold"

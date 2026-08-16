@@ -1,7 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { Task, Project } from "../types";
 import { api } from "../lib/api";
-import { Kanban, User, Clock, AlertCircle, FileText, CheckCircle, ChevronRight, X, Reply, Check, CornerDownRight, Loader2, Plus, RefreshCw } from "lucide-react";
+import {
+  Kanban,
+  User,
+  Clock,
+  AlertCircle,
+  FileText,
+  CheckCircle,
+  ChevronRight,
+  X,
+  Reply,
+  Check,
+  CornerDownRight,
+  Loader2,
+  Plus,
+  RefreshCw,
+  Edit,
+  Play,
+  RotateCcw
+} from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface KanbanBoardProps {
@@ -13,6 +31,14 @@ export default function KanbanBoard({ project, userRole }: KanbanBoardProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+
+  // Edit task states
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editPriority, setEditPriority] = useState<string>("High");
+  const [editColumn, setEditColumn] = useState<string>("In Progress");
+  const [savingEdit, setSavingEdit] = useState(false);
   
   // Feedback / change request states
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
@@ -53,18 +79,66 @@ export default function KanbanBoard({ project, userRole }: KanbanBoardProps) {
   // Drag and Drop simulation + quick moves
   const handleMoveTask = async (taskId: string, targetCol: string) => {
     try {
-      const { task } = await api.moveTask(taskId, targetCol);
-      // optimistically update local state
-      setTasks(tasks.map((t) => (t.id === taskId ? { ...t, column: targetCol as any } : t)));
+      await api.moveTask(taskId, targetCol);
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, column: targetCol as any } : t)));
+      if (activeTask && activeTask.id === taskId) {
+        setActiveTask((prev) => (prev ? { ...prev, column: targetCol as any } : null));
+      }
     } catch (err) {
       console.error("Failed to move task:", err);
     }
   };
 
   const handleApproveTask = async (taskId: string) => {
-    // Moves task to Completed column
     await handleMoveTask(taskId, "Completed");
     setActiveTask(null);
+  };
+
+  const openEditModal = (task: Task, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setEditingTask(task);
+    setEditTitle(task.title);
+    setEditDescription(task.description);
+    setEditPriority(task.priority);
+    setEditColumn(task.column);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTask || !editTitle) return;
+
+    setSavingEdit(true);
+    try {
+      await api.saveTask({
+        id: editingTask.id,
+        title: editTitle,
+        description: editDescription,
+        priority: editPriority as any,
+        column: editColumn as any,
+      });
+
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === editingTask.id
+            ? { ...t, title: editTitle, description: editDescription, priority: editPriority as any, column: editColumn as any }
+            : t
+        )
+      );
+
+      if (activeTask && activeTask.id === editingTask.id) {
+        setActiveTask((prev) =>
+          prev
+            ? { ...prev, title: editTitle, description: editDescription, priority: editPriority as any, column: editColumn as any }
+            : null
+        );
+      }
+
+      setEditingTask(null);
+    } catch (err) {
+      console.error("Failed saving task edit:", err);
+    } finally {
+      setSavingEdit(false);
+    }
   };
 
   const handleSubmitFeedback = async (e: React.FormEvent) => {
@@ -130,10 +204,6 @@ export default function KanbanBoard({ project, userRole }: KanbanBoardProps) {
             <div 
               key={colName}
               className="bg-bg-card/40 border border-border-custom/80 p-4 rounded-card min-h-[500px] flex flex-col space-y-4"
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={() => {
-                // drag and drop simulation handled on click, or we can listen to standard events
-              }}
             >
               {/* Column Label */}
               <div className="flex items-center justify-between pb-2 border-b border-border-custom/50">
@@ -163,21 +233,17 @@ export default function KanbanBoard({ project, userRole }: KanbanBoardProps) {
                           {task.priority}
                         </span>
                         
-                        {/* Drag indicator / admin quick shifts */}
-                        {userRole === "admin" && (
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                            {COLUMNS.filter(c => c !== colName).map(c => (
-                              <button
-                                key={c}
-                                title={`Move to ${c}`}
-                                onClick={(e) => { e.stopPropagation(); handleMoveTask(task.id, c); }}
-                                className="text-[8px] font-mono hover:text-accent-primary bg-bg-secondary px-1 border border-border-custom rounded"
-                              >
-                                {c.charAt(0)}
-                              </button>
-                            ))}
-                          </div>
-                        )}
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                          <button
+                            type="button"
+                            title="Edit task"
+                            onClick={(e) => openEditModal(task, e)}
+                            className="text-[9px] font-mono text-accent-primary hover:bg-accent-primary/20 bg-bg-secondary px-1.5 py-0.5 border border-accent-primary/30 rounded cursor-pointer flex items-center gap-1"
+                          >
+                            <Edit className="h-2.5 w-2.5" />
+                            Edit
+                          </button>
+                        </div>
                       </div>
 
                       {/* Title & Description */}
@@ -188,6 +254,46 @@ export default function KanbanBoard({ project, userRole }: KanbanBoardProps) {
                         <p className="text-[11px] text-text-secondary line-clamp-2 leading-relaxed">
                           {task.description}
                         </p>
+                      </div>
+
+                      {/* Quick Action Button Row */}
+                      <div className="pt-2 border-t border-border-custom/30 flex flex-wrap gap-1.5">
+                        {task.column !== "In Progress" && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMoveTask(task.id, "In Progress");
+                            }}
+                            className="text-[9px] font-mono font-bold bg-accent-primary/10 hover:bg-accent-primary/25 text-accent-primary border border-accent-primary/30 px-2 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer"
+                          >
+                            <Play className="h-2.5 w-2.5" />
+                            In Progress
+                          </button>
+                        )}
+
+                        {task.column !== "Completed" && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMoveTask(task.id, "Completed");
+                            }}
+                            className="text-[9px] font-mono font-bold bg-brand-success/10 hover:bg-brand-success/25 text-brand-success border border-brand-success/30 px-2 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer"
+                          >
+                            <Check className="h-2.5 w-2.5 stroke-[2.5]" />
+                            Mark Done
+                          </button>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={(e) => openEditModal(task, e)}
+                          className="text-[9px] font-mono text-text-muted hover:text-white bg-bg-secondary hover:bg-slate-800 border border-border-custom px-2 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer ml-auto"
+                        >
+                          <Edit className="h-2.5 w-2.5" />
+                          Edit
+                        </button>
                       </div>
 
                       {/* Footer: User + Date */}
@@ -219,6 +325,96 @@ export default function KanbanBoard({ project, userRole }: KanbanBoardProps) {
           );
         })}
       </div>
+
+      {/* Edit Task Modal */}
+      {editingTask && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-bg-card border border-border-custom rounded-card p-6 w-full max-w-lg shadow-glow space-y-4 text-text-primary">
+            <div className="flex justify-between items-center border-b border-border-custom pb-3">
+              <h3 className="font-mono text-xs uppercase tracking-wider text-accent-primary font-bold">
+                // EDIT TASK: {editingTask.title}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingTask(null)}
+                className="text-text-muted hover:text-white p-1 rounded-full border border-border-custom bg-bg-secondary cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              <div>
+                <label className="block font-mono text-[10px] text-text-muted uppercase mb-1">Task Title</label>
+                <input
+                  type="text"
+                  required
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+                />
+              </div>
+
+              <div>
+                <label className="block font-mono text-[10px] text-text-muted uppercase mb-1">Description</label>
+                <textarea
+                  rows={4}
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary p-3 text-xs rounded-input outline-none font-sans"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-mono text-[10px] text-text-muted uppercase mb-1">Priority</label>
+                  <select
+                    value={editPriority}
+                    onChange={(e) => setEditPriority(e.target.value)}
+                    className="w-full bg-bg-secondary border border-border-custom text-text-primary px-3 py-2 text-xs rounded-input outline-none font-mono cursor-pointer"
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Critical">Critical</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-mono text-[10px] text-text-muted uppercase mb-1">Status Column</label>
+                  <select
+                    value={editColumn}
+                    onChange={(e) => setEditColumn(e.target.value)}
+                    className="w-full bg-bg-secondary border border-border-custom text-text-primary px-3 py-2 text-xs rounded-input outline-none font-mono cursor-pointer"
+                  >
+                    <option value="To Do">To Do</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="In Review">In Review</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-border-custom">
+                <button
+                  type="button"
+                  onClick={() => setEditingTask(null)}
+                  className="px-4 py-2 bg-bg-secondary hover:bg-slate-800 text-text-secondary font-mono text-xs uppercase rounded-input transition-colors cursor-pointer"
+                >
+                  [CANCEL]
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingEdit}
+                  className="px-5 py-2 bg-accent-primary hover:bg-accent-hover text-bg-primary font-mono text-xs uppercase font-bold rounded-input transition-all flex items-center gap-2 cursor-pointer shadow-glow"
+                >
+                  {savingEdit ? <Loader2 className="h-4 w-4 animate-spin" /> : "SAVE CHANGES"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Side Detail Panel / Sidebar drawer */}
       <AnimatePresence>
@@ -258,12 +454,67 @@ export default function KanbanBoard({ project, userRole }: KanbanBoardProps) {
               {/* Body details */}
               <div className="space-y-6 flex-grow">
                 <div className="space-y-2">
-                  <span className={`font-mono text-[9px] px-2 py-0.5 border rounded uppercase ${getPriorityColor(activeTask.priority)}`}>
-                    {activeTask.priority} Priority
-                  </span>
+                  <div className="flex items-center justify-between">
+                    <span className={`font-mono text-[9px] px-2 py-0.5 border rounded uppercase ${getPriorityColor(activeTask.priority)}`}>
+                      {activeTask.priority} Priority
+                    </span>
+                    <span className="font-mono text-[9px] text-accent-primary border border-accent-primary/30 px-2 py-0.5 rounded">
+                      Column: {activeTask.column}
+                    </span>
+                  </div>
                   <h2 className="font-sans text-lg font-bold text-text-primary tracking-tight leading-snug">
                     {activeTask.title}
                   </h2>
+                </div>
+
+                {/* Primary Action Console */}
+                <div className="p-4 bg-bg-secondary border border-accent-primary/30 rounded-input space-y-3">
+                  <span className="block font-mono text-[9px] text-accent-primary uppercase tracking-widest font-bold">
+                    // QUICK ACTION CONTROLS
+                  </span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => openEditModal(activeTask)}
+                      className="py-2 px-3 bg-bg-card hover:bg-slate-800 text-text-primary font-mono text-[10px] uppercase font-bold rounded transition-colors flex items-center justify-center gap-1.5 cursor-pointer border border-border-custom"
+                    >
+                      <Edit className="h-3 w-3 text-accent-primary" />
+                      Edit Task
+                    </button>
+
+                    {activeTask.column !== "In Progress" && (
+                      <button
+                        type="button"
+                        onClick={() => handleMoveTask(activeTask.id, "In Progress")}
+                        className="py-2 px-3 bg-accent-primary/20 hover:bg-accent-primary/30 text-accent-primary border border-accent-primary/40 font-mono text-[10px] uppercase font-bold rounded transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Play className="h-3 w-3" />
+                        In Progress
+                      </button>
+                    )}
+
+                    {activeTask.column !== "Completed" && (
+                      <button
+                        type="button"
+                        onClick={() => handleApproveTask(activeTask.id)}
+                        className="py-2 px-3 bg-brand-success/20 hover:bg-brand-success/30 text-brand-success border border-brand-success/40 font-mono text-[10px] uppercase font-bold rounded transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Check className="h-3 w-3 stroke-[2.5]" />
+                        Mark as Done
+                      </button>
+                    )}
+
+                    {activeTask.column !== "To Do" && (
+                      <button
+                        type="button"
+                        onClick={() => handleMoveTask(activeTask.id, "To Do")}
+                        className="py-2 px-3 bg-bg-card hover:bg-slate-800 text-text-secondary border border-border-custom font-mono text-[10px] uppercase rounded transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <RotateCcw className="h-3 w-3" />
+                        Move to To Do
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Developer block */}
@@ -360,6 +611,7 @@ export default function KanbanBoard({ project, userRole }: KanbanBoardProps) {
                         <option value="Low">Low Priority</option>
                         <option value="Medium">Medium Priority</option>
                         <option value="High">High Priority (FCA compliance Block)</option>
+                        <option value="Critical">Critical Priority</option>
                       </select>
                     </div>
 

@@ -12,6 +12,10 @@ import {
   Reply,
   Check,
   Plus,
+  Edit,
+  Play,
+  ArrowRight,
+  RotateCcw,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@/src/components/providers/auth-provider";
@@ -38,8 +42,16 @@ interface Task {
 
 export default function KanbanBoardPage() {
   const { user } = useUser();
-  const { loading: dataLoading, tasks, moveTask, submitTaskFeedback } = usePortalData();
+  const { loading: dataLoading, tasks, moveTask, submitTaskFeedback, updateTask } = usePortalData();
   const [activeTask, setActiveTask] = React.useState<Task | null>(null);
+
+  // Edit Task modal states
+  const [editingTask, setEditingTask] = React.useState<Task | null>(null);
+  const [editTitle, setEditTitle] = React.useState("");
+  const [editDescription, setEditDescription] = React.useState("");
+  const [editPriority, setEditPriority] = React.useState<Task["priority"]>("High");
+  const [editColumn, setEditColumn] = React.useState<Task["column"]>("In Progress");
+  const [savingEdit, setSavingEdit] = React.useState(false);
 
   // Revision / feedback states
   const [showFeedbackForm, setShowFeedbackForm] = React.useState(false);
@@ -53,6 +65,9 @@ export default function KanbanBoardPage() {
 
   const handleMoveTask = (taskId: string, targetCol: Task["column"]) => {
     moveTask(taskId, targetCol);
+    if (activeTask && activeTask.id === taskId) {
+      setActiveTask((prev) => (prev ? { ...prev, column: targetCol } : null));
+    }
     toast.success(`Task shifted to ${targetCol}`);
   };
 
@@ -60,6 +75,46 @@ export default function KanbanBoardPage() {
     handleMoveTask(taskId, "Completed");
     setActiveTask(null);
     toast.success("Task approved and marked completed.");
+  };
+
+  const openEditModal = (task: Task, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setEditingTask(task);
+    setEditTitle(task.title);
+    setEditDescription(task.description);
+    setEditPriority(task.priority);
+    setEditColumn(task.column);
+  };
+
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTask || !editTitle) return;
+
+    setSavingEdit(true);
+    updateTask(editingTask.id, {
+      title: editTitle,
+      description: editDescription,
+      priority: editPriority,
+      column: editColumn,
+    });
+
+    if (activeTask && activeTask.id === editingTask.id) {
+      setActiveTask((prev) =>
+        prev
+          ? {
+              ...prev,
+              title: editTitle,
+              description: editDescription,
+              priority: editPriority,
+              column: editColumn,
+            }
+          : null
+      );
+    }
+
+    setSavingEdit(false);
+    setEditingTask(null);
+    toast.success("Task updated successfully!");
   };
 
   const handleSubmitFeedback = async (e: React.FormEvent) => {
@@ -78,53 +133,45 @@ export default function KanbanBoardPage() {
     toast.success("Revision request dispatched to Binary Froster");
     setShowFeedbackForm(false);
     setFeedbackText("");
-    setActiveTask(null);
     setSubmittingFeedback(false);
-  };
-
-  const getPriorityColor = (p: Task["priority"]) => {
-    switch (p) {
-      case "Critical":
-        return "bg-brand-error/15 text-brand-error border-brand-error/20";
-      case "High":
-        return "bg-brand-warning/15 text-brand-warning border-brand-warning/20";
-      case "Medium":
-        return "bg-accent-primary/15 text-accent-primary border-accent-primary/20 shadow-glow";
-      default:
-        return "bg-white/10 text-white/60 border-border-custom";
-    }
   };
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 animate-pulse">
-        <Skeleton className="h-96" />
-        <Skeleton className="h-96" />
-        <Skeleton className="h-96" />
-        <Skeleton className="h-96" />
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-pulse">
+        <Skeleton className="h-96 w-full" />
+        <Skeleton className="h-96 w-full" />
+        <Skeleton className="h-96 w-full" />
+        <Skeleton className="h-96 w-full" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Kanban Header */}
-      <div className="flex justify-between items-center">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div className="flex items-center gap-2">
           <Kanban className="h-4.5 w-4.5 text-accent-primary" />
           <span className="font-mono text-xs text-text-secondary uppercase tracking-widest">
             // SECURE SCRUM KANBAN
           </span>
         </div>
-        {user?.role === "admin" && (
-          <p className="font-mono text-[10px] text-accent-primary uppercase tracking-wider">
-            [ADMIN CONTROL ACTIVE]
-          </p>
-        )}
+
+        <div className="flex items-center gap-2">
+          <Badge variant="cyan" className="font-mono text-[9px] uppercase">
+            ACTIVE SPRINT
+          </Badge>
+          {user?.role === "admin" && (
+            <Badge variant="cyan" className="font-mono text-[9px] uppercase">
+              ADMIN CONTROL
+            </Badge>
+          )}
+        </div>
       </div>
 
       {/* Columns Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
         {COLUMNS.map((colName) => {
           const colTasks = tasks.filter((t) => t.column === colName);
 
@@ -174,23 +221,18 @@ export default function KanbanBoardPage() {
                           {task.priority}
                         </Badge>
 
-                        {user?.role === "admin" && (
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                            {COLUMNS.filter((c) => c !== colName).map((c) => (
-                              <button
-                                key={c}
-                                title={`Move to ${c}`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleMoveTask(task.id, c);
-                                }}
-                                className="text-[8px] font-mono hover:text-accent-primary bg-bg-secondary px-1 border border-border-custom rounded cursor-pointer"
-                              >
-                                {c.charAt(0)}
-                              </button>
-                            ))}
-                          </div>
-                        )}
+                        {/* Top quick shift tags */}
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                          <button
+                            type="button"
+                            title="Edit task"
+                            onClick={(e) => openEditModal(task, e)}
+                            className="text-[9px] font-mono text-cyan-400 hover:bg-cyan-500/20 bg-bg-secondary px-1.5 py-0.5 border border-cyan-500/30 rounded cursor-pointer flex items-center gap-1"
+                          >
+                            <Edit className="h-2.5 w-2.5" />
+                            Edit
+                          </button>
+                        </div>
                       </div>
 
                       {/* Title & Description */}
@@ -203,8 +245,48 @@ export default function KanbanBoardPage() {
                         </p>
                       </div>
 
+                      {/* Action buttons bar on Card */}
+                      <div className="pt-2 border-t border-border-custom/30 flex flex-wrap gap-1.5">
+                        {task.column !== "In Progress" && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMoveTask(task.id, "In Progress");
+                            }}
+                            className="text-[9px] font-mono font-bold bg-cyan-500/10 hover:bg-cyan-500/25 text-cyan-400 border border-cyan-500/30 px-2 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer"
+                          >
+                            <Play className="h-2.5 w-2.5" />
+                            In Progress
+                          </button>
+                        )}
+
+                        {task.column !== "Completed" && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMoveTask(task.id, "Completed");
+                            }}
+                            className="text-[9px] font-mono font-bold bg-emerald-500/10 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 px-2 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer"
+                          >
+                            <Check className="h-2.5 w-2.5 stroke-[2.5]" />
+                            Mark Done
+                          </button>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={(e) => openEditModal(task, e)}
+                          className="text-[9px] font-mono text-slate-400 hover:text-white bg-bg-secondary hover:bg-slate-800 border border-border-custom px-2 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer ml-auto"
+                        >
+                          <Edit className="h-2.5 w-2.5" />
+                          Edit
+                        </button>
+                      </div>
+
                       {/* Footer: User + Date */}
-                      <div className="flex justify-between items-center pt-2.5 border-t border-border-custom/40">
+                      <div className="flex justify-between items-center pt-2 border-t border-border-custom/40">
                         {/* Assigned developer */}
                         <div className="flex items-center gap-1.5 min-w-0">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -219,7 +301,7 @@ export default function KanbanBoardPage() {
                         </div>
 
                         {/* Due Date */}
-                        <div className="flex items-center gap-1 font-mono text-[9px] text-text-muted shrink-0">
+                        <div className="flex items-center gap-1 font-mono text-[9px] text-text-muted">
                           <Clock className="h-3 w-3" />
                           <span>{task.dueDate.split("-").slice(1).join("/")}</span>
                         </div>
@@ -233,7 +315,96 @@ export default function KanbanBoardPage() {
         })}
       </div>
 
-      {/* Detail Panel slide-over */}
+      {/* Edit Task Modal */}
+      {editingTask && (
+        <Modal
+          isOpen={!!editingTask}
+          onClose={() => setEditingTask(null)}
+          title={`// EDIT TASK: ${editingTask.title}`}
+          size="md"
+        >
+          <form onSubmit={handleSaveEdit} className="space-y-4 text-white">
+            <div>
+              <label className="block font-mono text-[10px] text-slate-400 uppercase mb-1">
+                Task Title
+              </label>
+              <input
+                type="text"
+                required
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="w-full bg-[#0A0D14] border border-slate-700 focus:border-cyan-400 text-white px-3.5 py-2 text-xs rounded-xl outline-none font-sans"
+              />
+            </div>
+
+            <div>
+              <label className="block font-mono text-[10px] text-slate-400 uppercase mb-1">
+                Description & Technical Specs
+              </label>
+              <textarea
+                rows={4}
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                className="w-full bg-[#0A0D14] border border-slate-700 focus:border-cyan-400 text-white p-3 text-xs rounded-xl outline-none font-sans"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block font-mono text-[10px] text-slate-400 uppercase mb-1">
+                  Priority
+                </label>
+                <select
+                  value={editPriority}
+                  onChange={(e) => setEditPriority(e.target.value as any)}
+                  className="w-full bg-[#0A0D14] border border-slate-700 text-white px-3 py-2 text-xs rounded-xl outline-none font-mono cursor-pointer"
+                >
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                  <option value="Critical">Critical</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-mono text-[10px] text-slate-400 uppercase mb-1">
+                  Workflow Status Column
+                </label>
+                <select
+                  value={editColumn}
+                  onChange={(e) => setEditColumn(e.target.value as any)}
+                  className="w-full bg-[#0A0D14] border border-slate-700 text-white px-3 py-2 text-xs rounded-xl outline-none font-mono cursor-pointer"
+                >
+                  <option value="To Do">To Do</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="In Review">In Review</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setEditingTask(null)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs uppercase rounded-xl transition-colors cursor-pointer"
+              >
+                [CANCEL]
+              </button>
+              <Button
+                type="submit"
+                variant="accent"
+                className="font-mono text-xs uppercase font-bold py-2 px-5 rounded-xl cursor-pointer"
+                isLoading={savingEdit}
+              >
+                SAVE CHANGES
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* Side Detail Panel / Drawer */}
       <AnimatePresence>
         {activeTask && (
           <div className="fixed inset-0 z-50 flex justify-end">
@@ -246,15 +417,15 @@ export default function KanbanBoardPage() {
                 setActiveTask(null);
                 setShowFeedbackForm(false);
               }}
-              className="absolute inset-0 bg-black cursor-pointer"
+              className="absolute inset-0 bg-black"
             />
 
-            {/* Drawer */}
+            {/* Panel Drawer */}
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ type: "tween", duration: 0.3, ease: "easeOut" }}
+              transition={{ type: "tween", duration: 0.35, ease: "easeOut" }}
               className="relative w-full max-w-md bg-bg-card border-l border-border-custom h-full flex flex-col p-6 shadow-glow overflow-y-auto"
             >
               {/* Close Button */}
@@ -263,12 +434,12 @@ export default function KanbanBoardPage() {
                   setActiveTask(null);
                   setShowFeedbackForm(false);
                 }}
-                className="absolute top-6 right-6 p-1.5 rounded-full border border-border-custom bg-bg-secondary hover:text-accent-primary hover:border-accent-primary/40 transition-all cursor-pointer"
+                className="absolute top-6 right-6 p-1.5 rounded-full border border-border-custom bg-bg-secondary hover:text-accent-primary hover:border-accent-primary/40 transition-all cursor-pointer text-text-muted hover:text-white"
               >
                 <X className="h-4 w-4" />
               </button>
 
-              {/* Console Header */}
+              {/* Header */}
               <div className="flex items-center gap-2 mb-6 text-text-secondary">
                 <Kanban className="h-4 w-4 text-accent-primary" />
                 <span className="font-mono text-[10px] uppercase tracking-widest">
@@ -276,26 +447,81 @@ export default function KanbanBoardPage() {
                 </span>
               </div>
 
-              {/* Task Details */}
+              {/* Body */}
               <div className="space-y-6 flex-grow">
                 <div className="space-y-2">
-                  <Badge
-                    variant={
-                      activeTask.priority === "Critical"
-                        ? "error"
-                        : activeTask.priority === "High"
-                        ? "warning"
-                        : activeTask.priority === "Medium"
-                        ? "cyan"
-                        : "default"
-                    }
-                    className="font-mono"
-                  >
-                    {activeTask.priority} Priority
-                  </Badge>
+                  <div className="flex items-center justify-between">
+                    <Badge
+                      variant={
+                        activeTask.priority === "Critical"
+                          ? "error"
+                          : activeTask.priority === "High"
+                          ? "warning"
+                          : activeTask.priority === "Medium"
+                          ? "cyan"
+                          : "default"
+                      }
+                      className="font-mono text-[9px] uppercase"
+                    >
+                      {activeTask.priority} Priority
+                    </Badge>
+                    <span className="font-mono text-[9px] text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded">
+                      Column: {activeTask.column}
+                    </span>
+                  </div>
                   <h2 className="font-sans text-lg font-bold text-white tracking-tight leading-snug">
                     {activeTask.title}
                   </h2>
+                </div>
+
+                {/* Primary Action Console */}
+                <div className="p-4 bg-[#0A0D14] border border-cyan-500/30 rounded-xl space-y-3">
+                  <span className="block font-mono text-[9px] text-cyan-400 uppercase tracking-widest font-bold">
+                    // QUICK ACTION CONTROLS
+                  </span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => openEditModal(activeTask)}
+                      className="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-white font-mono text-[10px] uppercase font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer border border-slate-700"
+                    >
+                      <Edit className="h-3 w-3 text-cyan-400" />
+                      Edit Task
+                    </button>
+
+                    {activeTask.column !== "In Progress" && (
+                      <button
+                        type="button"
+                        onClick={() => handleMoveTask(activeTask.id, "In Progress")}
+                        className="py-2 px-3 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-500/40 font-mono text-[10px] uppercase font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Play className="h-3 w-3" />
+                        In Progress
+                      </button>
+                    )}
+
+                    {activeTask.column !== "Completed" && (
+                      <button
+                        type="button"
+                        onClick={() => handleApproveTask(activeTask.id)}
+                        className="py-2 px-3 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/40 font-mono text-[10px] uppercase font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Check className="h-3 w-3 stroke-[2.5]" />
+                        Mark as Done
+                      </button>
+                    )}
+
+                    {activeTask.column !== "To Do" && (
+                      <button
+                        type="button"
+                        onClick={() => handleMoveTask(activeTask.id, "To Do")}
+                        className="py-2 px-3 bg-slate-800/80 hover:bg-slate-800 text-slate-300 border border-slate-700 font-mono text-[10px] uppercase rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <RotateCcw className="h-3 w-3" />
+                        Move to To Do
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Developer */}

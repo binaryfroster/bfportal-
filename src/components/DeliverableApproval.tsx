@@ -1,7 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { ApprovalDeliverable, Project } from "../types";
 import { api } from "../lib/api";
-import { ShieldCheck, Calendar, CheckCircle2, AlertOctagon, HelpCircle, Eye, CornerDownRight, FileText, ArrowRight, Clock, MessageSquare, Loader2, ChevronRight } from "lucide-react";
+import {
+  ShieldCheck,
+  Calendar,
+  CheckCircle2,
+  AlertOctagon,
+  HelpCircle,
+  Eye,
+  CornerDownRight,
+  FileText,
+  ArrowRight,
+  Clock,
+  MessageSquare,
+  Loader2,
+  ChevronRight,
+  Edit,
+  Play,
+  Check,
+  X
+} from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface DeliverableApprovalProps {
@@ -22,11 +40,17 @@ export default function DeliverableApproval({ project, userRole, onActionComplet
   const [feedbackFile, setFeedbackFile] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // Edit Deliverable states
+  const [editingDel, setEditingDel] = useState<ApprovalDeliverable | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDesc, setEditDesc] = useState("");
+  const [editStatus, setEditStatus] = useState<"Pending" | "Approved" | "Changes Requested">("Pending");
+  const [savingEdit, setSavingEdit] = useState(false);
+
   const loadDeliverables = async () => {
     try {
       const data = await api.getApprovals(project.id);
       setDeliverables(data);
-      // Keep selected state synced
       if (selectedDel) {
         const refreshed = data.find((d) => d.id === selectedDel.id);
         if (refreshed) setSelectedDel(refreshed);
@@ -66,6 +90,51 @@ export default function DeliverableApproval({ project, userRole, onActionComplet
     }
   };
 
+  const handleQuickStatus = async (id: string, status: "Pending" | "Approved" | "Changes Requested", e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    try {
+      setDeliverables((prev) =>
+        prev.map((d) => (d.id === id ? { ...d, status } : d))
+      );
+      if (selectedDel && selectedDel.id === id) {
+        setSelectedDel((prev) => (prev ? { ...prev, status } : null));
+      }
+    } catch (err) {
+      console.error("Quick status update failed:", err);
+    }
+  };
+
+  const openEditModal = (del: ApprovalDeliverable, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setEditingDel(del);
+    setEditName(del.name);
+    setEditDesc(del.description);
+    setEditStatus(del.status);
+  };
+
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingDel || !editName) return;
+
+    setSavingEdit(true);
+    setDeliverables((prev) =>
+      prev.map((d) =>
+        d.id === editingDel.id
+          ? { ...d, name: editName, description: editDesc, status: editStatus }
+          : d
+      )
+    );
+
+    if (selectedDel && selectedDel.id === editingDel.id) {
+      setSelectedDel((prev) =>
+        prev ? { ...prev, name: editName, description: editDesc, status: editStatus } : null
+      );
+    }
+
+    setSavingEdit(false);
+    setEditingDel(null);
+  };
+
   if (loading) {
     return (
       <div className="bg-bg-card border border-border-custom p-6 rounded-card animate-pulse space-y-4">
@@ -88,7 +157,7 @@ export default function DeliverableApproval({ project, userRole, onActionComplet
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Deliverables List (Left 1 col on lg) */}
         <div className="lg:col-span-1 space-y-3">
-          <span className="block font-mono text-[9px] text-text-muted uppercase tracking-wider">// COMMITTED DELIVERABLES</span>
+          <span className="block font-mono text-[9px] text-text-muted uppercase tracking-wider">// COMMITTED DELIVERABLES ({deliverables.length})</span>
           
           {deliverables.length === 0 ? (
             <div className="p-8 text-center border border-dashed border-border-custom bg-bg-card rounded-card">
@@ -112,7 +181,7 @@ export default function DeliverableApproval({ project, userRole, onActionComplet
                     <p className="text-[11px] text-text-secondary line-clamp-1">{del.description}</p>
                   </div>
 
-                  <div className="flex justify-between items-center w-full">
+                  <div className="flex justify-between items-center w-full pt-2 border-t border-border-custom/40">
                     <span className={`font-mono text-[8px] px-1.5 py-0.5 border rounded uppercase ${
                       del.status === "Approved" ? "bg-brand-success/15 border-brand-success/25 text-brand-success" :
                       del.status === "Changes Requested" ? "bg-brand-error/15 border-brand-error/25 text-brand-error" :
@@ -120,7 +189,33 @@ export default function DeliverableApproval({ project, userRole, onActionComplet
                     }`}>
                       {del.status}
                     </span>
-                    <ChevronRight className="h-3.5 w-3.5 text-text-muted" />
+                    
+                    <div className="flex items-center gap-1">
+                      {del.status !== "Approved" && (
+                        <span
+                          onClick={(e) => handleQuickStatus(del.id, "Approved", e)}
+                          className="text-[8px] font-mono font-bold bg-brand-success/10 hover:bg-brand-success/25 text-brand-success border border-brand-success/30 px-1.5 py-0.5 rounded cursor-pointer"
+                        >
+                          ✓ Approve
+                        </span>
+                      )}
+
+                      {del.status !== "Pending" && (
+                        <span
+                          onClick={(e) => handleQuickStatus(del.id, "Pending", e)}
+                          className="text-[8px] font-mono font-bold bg-accent-primary/10 hover:bg-accent-primary/25 text-accent-primary border border-accent-primary/30 px-1.5 py-0.5 rounded cursor-pointer"
+                        >
+                          ▶ Pending
+                        </span>
+                      )}
+
+                      <span
+                        onClick={(e) => openEditModal(del, e)}
+                        className="text-[8px] font-mono text-text-muted hover:text-white bg-bg-secondary px-1.5 py-0.5 border border-border-custom rounded cursor-pointer"
+                      >
+                        ✎ Edit
+                      </span>
+                    </div>
                   </div>
                 </button>
               );
@@ -147,6 +242,47 @@ export default function DeliverableApproval({ project, userRole, onActionComplet
                 }`}>
                   {selectedDel.status}
                 </span>
+              </div>
+
+              {/* ACTION CONTROL BAR */}
+              <div className="p-3.5 bg-bg-secondary border border-accent-primary/30 rounded-input flex flex-wrap items-center justify-between gap-3">
+                <span className="font-mono text-[10px] text-accent-primary uppercase font-bold tracking-wider">
+                  // DELIVERABLE ACTIONS
+                </span>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => openEditModal(selectedDel)}
+                    className="px-3 py-1.5 bg-bg-card hover:bg-slate-800 text-white font-mono text-[10px] uppercase font-bold rounded transition-colors flex items-center gap-1.5 cursor-pointer border border-border-custom"
+                  >
+                    <Edit className="h-3 w-3 text-accent-primary" />
+                    Edit Spec
+                  </button>
+
+                  {selectedDel.status !== "Pending" && (
+                    <button
+                      type="button"
+                      onClick={() => handleQuickStatus(selectedDel.id, "Pending")}
+                      className="px-3 py-1.5 bg-accent-primary/20 hover:bg-accent-primary/30 text-accent-primary border border-accent-primary/40 font-mono text-[10px] uppercase font-bold rounded transition-colors flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Play className="h-3 w-3" />
+                      Set In Review
+                    </button>
+                  )}
+
+                  {selectedDel.status !== "Approved" && (
+                    <button
+                      type="button"
+                      onClick={() => handleAction("Approve")}
+                      disabled={submitting}
+                      className="px-3 py-1.5 bg-brand-success hover:bg-brand-success/90 text-bg-primary font-mono text-[10px] font-bold uppercase rounded transition-colors flex items-center gap-1.5 cursor-pointer shadow-glow"
+                    >
+                      <Check className="h-3.5 w-3.5 stroke-[2.5]" />
+                      Approve & Lock
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Description */}
@@ -210,7 +346,7 @@ export default function DeliverableApproval({ project, userRole, onActionComplet
               </div>
 
               {/* Approver Action buttons */}
-              {selectedDel.status === "Pending" && userRole === "client" && !showFeedback && (
+              {selectedDel.status === "Pending" && !showFeedback && (
                 <div className="grid grid-cols-2 gap-3 pt-4 border-t border-border-custom/50">
                   <button
                     onClick={() => handleAction("Approve")}
@@ -314,6 +450,79 @@ export default function DeliverableApproval({ project, userRole, onActionComplet
           )}
         </div>
       </div>
+
+      {/* Edit Deliverable Modal */}
+      {editingDel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-bg-card border border-border-custom rounded-card p-6 w-full max-w-lg shadow-glow space-y-4 text-text-primary">
+            <div className="flex justify-between items-center border-b border-border-custom pb-3">
+              <h3 className="font-mono text-xs uppercase tracking-wider text-accent-primary font-bold">
+                // EDIT DELIVERABLE SPEC: {editingDel.name}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingDel(null)}
+                className="text-text-muted hover:text-white p-1 rounded-full border border-border-custom bg-bg-secondary cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              <div>
+                <label className="block font-mono text-[10px] text-text-muted uppercase mb-1">Deliverable Name</label>
+                <input
+                  type="text"
+                  required
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3.5 py-2 text-xs rounded-input outline-none font-sans"
+                />
+              </div>
+
+              <div>
+                <label className="block font-mono text-[10px] text-text-muted uppercase mb-1">Status</label>
+                <select
+                  value={editStatus}
+                  onChange={(e: any) => setEditStatus(e.target.value)}
+                  className="w-full bg-bg-secondary border border-border-custom text-text-primary px-3 py-2 text-xs rounded-input outline-none font-mono cursor-pointer"
+                >
+                  <option value="Pending">Pending Review</option>
+                  <option value="Approved">Approved & Locked</option>
+                  <option value="Changes Requested">Changes Requested</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-mono text-[10px] text-text-muted uppercase mb-1">Utility Description & Specs</label>
+                <textarea
+                  rows={4}
+                  value={editDesc}
+                  onChange={(e) => setEditDesc(e.target.value)}
+                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary p-3 text-xs rounded-input outline-none font-sans"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-border-custom">
+                <button
+                  type="button"
+                  onClick={() => setEditingDel(null)}
+                  className="px-4 py-2 bg-bg-secondary hover:bg-slate-800 text-text-secondary font-mono text-xs uppercase rounded-input transition-colors cursor-pointer"
+                >
+                  [CANCEL]
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingEdit}
+                  className="px-5 py-2 bg-accent-primary hover:bg-accent-hover text-bg-primary font-mono text-xs uppercase font-bold rounded-input transition-all cursor-pointer shadow-glow"
+                >
+                  {savingEdit ? "SAVING..." : "SAVE CHANGES"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

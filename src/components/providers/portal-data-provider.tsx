@@ -193,6 +193,11 @@ interface PortalDataContextType {
   markInvoicePaid: (invoiceId: string) => void;
   createMilestone: (milestone: Milestone) => void;
   updateTicketStatus: (ticketId: string, status: SupportTicket["status"]) => void;
+  updateTask: (taskId: string, updates: Partial<Task>) => void;
+  updateMilestone: (milestoneId: string, updates: Partial<Milestone>) => void;
+  updateChangeRequest: (id: string, updates: Partial<ChangeRequest>) => void;
+  updateApprovalDeliverable: (id: string, updates: Partial<ApprovalDeliverable>) => void;
+  updateTicket: (ticketId: string, updates: Partial<SupportTicket>) => void;
 
   // Enterprise Module Mutations
   createChangeRequest: (cr: Omit<ChangeRequest, "id" | "createdAt">) => void;
@@ -719,6 +724,36 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
     );
   };
 
+  const updateTask = (taskId: string, updates: Partial<Task>) => {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === taskId ? { ...t, ...updates } : t))
+    );
+  };
+
+  const updateMilestone = (milestoneId: string, updates: Partial<Milestone>) => {
+    setMilestones((prev) =>
+      prev.map((m) => (m.id === milestoneId ? { ...m, ...updates } : m))
+    );
+  };
+
+  const updateChangeRequest = (id: string, updates: Partial<ChangeRequest>) => {
+    setChangeRequests((prev) =>
+      prev.map((cr) => (cr.id === id ? { ...cr, ...updates } : cr))
+    );
+  };
+
+  const updateApprovalDeliverable = (id: string, updates: Partial<ApprovalDeliverable>) => {
+    setApprovals((prev) =>
+      prev.map((d) => (d.id === id ? { ...d, ...updates } : d))
+    );
+  };
+
+  const updateTicket = (ticketId: string, updates: Partial<SupportTicket>) => {
+    setTickets((prev) =>
+      prev.map((t) => (t.id === ticketId ? { ...t, ...updates } : t))
+    );
+  };
+
   return (
     <PortalDataContext.Provider
       value={{
@@ -759,6 +794,11 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
         markInvoicePaid,
         createMilestone,
         updateTicketStatus,
+        updateTask,
+        updateMilestone,
+        updateChangeRequest,
+        updateApprovalDeliverable,
+        updateTicket,
         createChangeRequest,
         signoffHandover,
         addCredential,

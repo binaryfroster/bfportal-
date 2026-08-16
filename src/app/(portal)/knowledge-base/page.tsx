@@ -14,7 +14,7 @@ export default function KnowledgeBasePage() {
     { title: "Submitting High-Priority SLA Incident Tickets", category: "Support", readTime: "2 min" },
     { title: "API Webhook Authentication & Signature Verification", category: "Developer Docs", readTime: "6 min" },
     { title: "Understanding the 6-Phase Project Lifecycle Stepper", category: "Project Tracking", readTime: "5 min" },
-    { title: "Configuring Multi-Factor Authentication (MFA/TOTP)", category: "Security", readTime: "3 min" },
+    { title: "Enterprise API Security & Key Management", category: "Security", readTime: "3 min" },
   ];
 
   const filtered = articles.filter(
