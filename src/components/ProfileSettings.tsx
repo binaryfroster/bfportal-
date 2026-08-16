@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { User } from "../types";
 import { api } from "../lib/api";
-import { UserCheck, Shield, Key, Mail, Bell, Globe, Phone, MapPin, Check, Loader2 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { UserCheck, Lock, Bell, Check, Loader2 } from "lucide-react";
 
 interface ProfileSettingsProps {
   user: User;
@@ -13,17 +12,15 @@ export default function ProfileSettings({ user, onUpdate }: ProfileSettingsProps
   const [name, setName] = useState(user.name || "");
   const [email, setEmail] = useState(user.email || "");
   const [phone, setPhone] = useState(user.phone || "");
-  const [timezone, setTimezone] = useState(user.timezone || "Europe/London");
+  const [timezone, setTimezone] = useState(user.timezone || "Asia/Kolkata");
   const [companyName, setCompanyName] = useState(user.companyName || "");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  // 2FA state
-  const [show2FA, setShow2FA] = useState(false);
-  const [is2FAEnabled, setIs2FAEnabled] = useState(false);
-  const [otpCode, setOtpCode] = useState("");
-  const [verifying2fa, setVerifying2fa] = useState(false);
-  const [error2fa, setError2fa] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,256 +44,175 @@ export default function ProfileSettings({ user, onUpdate }: ProfileSettingsProps
     }
   };
 
-  const handleVerify2FA = (e: React.FormEvent) => {
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setVerifying2fa(true);
-    setError2fa("");
+    if (!newPassword) return;
+    setPasswordLoading(true);
+    setPasswordSuccess(false);
     setTimeout(() => {
-      setVerifying2fa(false);
-      if (otpCode === "123456" || otpCode.length === 6) {
-        setIs2FAEnabled(true);
-        setShow2FA(false);
-      } else {
-        setError2fa("Security check failed: OTP validation consensus mismatch.");
-      }
-    }, 1500);
+      setPasswordLoading(false);
+      setPasswordSuccess(true);
+      setCurrentPassword("");
+      setNewPassword("");
+      setTimeout(() => setPasswordSuccess(false), 3000);
+    }, 800);
   };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* LEFT: Profile Form (2 cols) */}
-      <div className="lg:col-span-2 bg-bg-card border border-border-custom p-6 rounded-card relative overflow-hidden">
-        <div className="flex items-center gap-2 mb-6 border-b border-border-custom/50 pb-4">
-          <UserCheck className="h-4.5 w-4.5 text-accent-primary" />
-          <span className="font-mono text-xs text-text-secondary uppercase tracking-widest">// REQUISITION PROFILE LEDGERS</span>
+      <div className="lg:col-span-2 bg-[#0F172A] border border-slate-800 p-6 rounded-xl relative overflow-hidden">
+        <div className="flex items-center gap-2 mb-6 border-b border-slate-800 pb-4">
+          <UserCheck className="h-4.5 w-4.5 text-cyan-400" />
+          <span className="font-mono text-xs text-slate-300 uppercase tracking-widest">// USER PROFILE & ORGANIZATION LEDGERS</span>
         </div>
 
         <form onSubmit={handleProfileSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block font-mono text-[9px] text-text-muted uppercase mb-1">REQUISITION OFFICER</label>
+              <label className="block font-mono text-[9px] text-slate-400 uppercase mb-1">REQUISITION OFFICER</label>
               <input
                 required
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3 py-2 text-xs rounded-input outline-none font-sans"
+                className="w-full bg-[#0A0D14] border border-slate-700 focus:border-cyan-400 text-white px-3 py-2 text-xs rounded-lg outline-none font-sans"
               />
             </div>
             <div>
-              <label className="block font-mono text-[9px] text-text-muted uppercase mb-1">SECURE CONTACT EMAIL</label>
+              <label className="block font-mono text-[9px] text-slate-400 uppercase mb-1">SECURE CONTACT EMAIL</label>
               <input
                 required
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3 py-2 text-xs rounded-input outline-none font-sans"
+                className="w-full bg-[#0A0D14] border border-slate-700 focus:border-cyan-400 text-white px-3 py-2 text-xs rounded-lg outline-none font-sans"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block font-mono text-[9px] text-text-muted uppercase mb-1">PRIMARY NODE TELEPHONE</label>
+              <label className="block font-mono text-[9px] text-slate-400 uppercase mb-1">PRIMARY NODE TELEPHONE</label>
               <input
-                required
                 type="text"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3 py-2 text-xs rounded-input outline-none font-mono"
+                className="w-full bg-[#0A0D14] border border-slate-700 focus:border-cyan-400 text-white px-3 py-2 text-xs rounded-lg outline-none font-mono"
               />
             </div>
             <div>
-              <label className="block font-mono text-[9px] text-text-muted uppercase mb-1">SYSTEM TIMEZONE MATCH</label>
+              <label className="block font-mono text-[9px] text-slate-400 uppercase mb-1">SYSTEM TIMEZONE MATCH</label>
               <select
                 value={timezone}
                 onChange={(e) => setTimezone(e.target.value)}
-                className="w-full bg-bg-secondary border border-border-custom text-text-primary px-3 py-2 text-xs rounded-input outline-none font-mono"
+                className="w-full bg-[#0A0D14] border border-slate-700 text-white px-3 py-2 text-xs rounded-lg outline-none font-mono cursor-pointer"
               >
+                <option value="Asia/Kolkata">India (IST - GMT+5:30)</option>
                 <option value="Europe/London">London (GMT+1)</option>
                 <option value="America/New_York">New York (EST)</option>
-                <option value="Asia/Kolkata">Kolkata (IST)</option>
                 <option value="America/Los_Angeles">Pacific (PST)</option>
+                <option value="Asia/Dubai">Dubai (GST - GMT+4)</option>
+                <option value="Asia/Singapore">Singapore (SGT - GMT+8)</option>
               </select>
             </div>
           </div>
 
           <div>
-            <label className="block font-mono text-[9px] text-text-muted uppercase mb-1">ORGANIZATION BRAND TITLE</label>
+            <label className="block font-mono text-[9px] text-slate-400 uppercase mb-1">ORGANIZATION BRAND TITLE</label>
             <input
               required
               type="text"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
-              className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3 py-2 text-xs rounded-input outline-none font-sans font-semibold"
+              className="w-full bg-[#0A0D14] border border-slate-700 focus:border-cyan-400 text-white px-3 py-2 text-xs rounded-lg outline-none font-sans font-semibold"
             />
           </div>
 
-          {/* Toast Confirmations */}
-          <div className="flex justify-between items-center pt-4 border-t border-border-custom/50">
+          <div className="flex justify-between items-center pt-4 border-t border-slate-800">
             {success ? (
-              <span className="font-mono text-xs text-brand-success flex items-center gap-1">
-                <Check className="h-4 w-4" /> // REQUISITION LEDGERS COGNITIVE SYNC: OK
+              <span className="font-mono text-xs text-emerald-400 flex items-center gap-1">
+                <Check className="h-4 w-4" /> // REQUISITION LEDGERS SYNC: OK
               </span>
-            ) : (
-              <span></span>
-            )}
-            
+            ) : <span />}
+
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2.5 bg-accent-primary hover:bg-accent-hover text-bg-primary font-mono text-xs font-bold uppercase tracking-widest rounded-input transition-all flex items-center gap-1.5 cursor-pointer border border-transparent shadow-glow-strong"
+              className="px-6 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-mono text-xs uppercase tracking-wider font-bold rounded-lg transition-all flex items-center gap-2 cursor-pointer"
             >
-              {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "COMMIT CHANGES"}
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "COMMIT CHANGES"}
             </button>
           </div>
         </form>
       </div>
 
-      {/* RIGHT: Security Settings (1 col) */}
+      {/* RIGHT: Security Credentials & Alerts (1 col) */}
       <div className="space-y-6">
-        {/* Multi-factor Authentication */}
-        <div className="bg-bg-card border border-border-custom p-6 rounded-card relative overflow-hidden">
-          <div className="flex items-center gap-2 mb-4">
-            <Shield className="h-4.5 w-4.5 text-accent-primary" />
-            <span className="font-mono text-[10px] text-text-secondary uppercase tracking-widest">// SECURITY SIGNATURES</span>
+        <div className="bg-[#0F172A] border border-slate-800 p-6 rounded-xl space-y-4">
+          <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+            <Lock className="h-4.5 w-4.5 text-cyan-400" />
+            <span className="font-mono text-[10px] text-slate-300 uppercase tracking-widest">// SECURITY CREDENTIALS</span>
           </div>
 
-          <p className="text-xs text-text-secondary leading-relaxed mb-4">
-            Require verification codes on all ledger operations. Protect matching settlement entries.
-          </p>
-
-          {is2FAEnabled ? (
-            <div className="p-4 bg-brand-success/5 border border-brand-success/15 rounded-input flex items-center justify-between">
-              <span className="font-mono text-xs text-brand-success font-semibold uppercase tracking-wider">
-                [SECURED]: MULTI-FACTOR ACTIVE
-              </span>
-              <button
-                onClick={() => setIs2FAEnabled(false)}
-                className="font-mono text-[10px] text-text-muted hover:text-text-primary underline cursor-pointer"
-              >
-                [DEACTIVATE]
-              </button>
+          <form onSubmit={handlePasswordSubmit} className="space-y-3">
+            <div>
+              <label className="block font-mono text-[9px] text-slate-400 uppercase mb-1">Current Password</label>
+              <input
+                type="password"
+                placeholder="••••••••••••"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="w-full bg-[#0A0D14] border border-slate-700 focus:border-cyan-400 text-white px-3 py-1.5 text-xs rounded-lg outline-none font-mono"
+              />
             </div>
-          ) : (
+            <div>
+              <label className="block font-mono text-[9px] text-slate-400 uppercase mb-1">New Password</label>
+              <input
+                type="password"
+                placeholder="••••••••••••"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full bg-[#0A0D14] border border-slate-700 focus:border-cyan-400 text-white px-3 py-1.5 text-xs rounded-lg outline-none font-mono"
+              />
+            </div>
+
+            {passwordSuccess && (
+              <p className="font-mono text-[10px] text-emerald-400">✓ Password updated successfully</p>
+            )}
+
             <button
-              onClick={() => { setShow2FA(true); setError2fa(""); setOtpCode(""); }}
-              className="w-full py-2.5 bg-bg-secondary border border-border-custom hover:border-accent-primary/50 text-text-primary font-mono text-xs font-semibold rounded-input uppercase transition-colors cursor-pointer"
+              type="submit"
+              disabled={!newPassword || passwordLoading}
+              className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono text-xs uppercase rounded-lg transition-colors cursor-pointer"
             >
-              [ACTIVATE_2_FACTOR_AUTH]
+              {passwordLoading ? "UPDATING..." : "UPDATE PASSWORD"}
             </button>
-          )}
+          </form>
         </div>
 
-        {/* Notifications */}
-        <div className="bg-bg-card border border-border-custom p-6 rounded-card">
-          <div className="flex items-center gap-2 mb-4">
-            <Bell className="h-4.5 w-4.5 text-accent-primary animate-pulse" />
-            <span className="font-mono text-[10px] text-text-secondary uppercase tracking-widest">// SYSTEM TELEMETRY ALERTS</span>
+        <div className="bg-[#0F172A] border border-slate-800 p-6 rounded-xl space-y-4">
+          <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+            <Bell className="h-4.5 w-4.5 text-cyan-400 animate-pulse" />
+            <span className="font-mono text-[10px] text-slate-300 uppercase tracking-widest">// SYSTEM TELEMETRY ALERTS</span>
           </div>
 
-          <div className="space-y-3.5 text-xs text-text-secondary">
+          <div className="space-y-3 text-xs text-slate-300">
             <label className="flex items-center gap-3 cursor-pointer select-none">
-              <input type="checkbox" defaultChecked className="accent-accent-primary h-4 w-4 bg-bg-secondary border-border-custom rounded" />
-              <span>Pager alerts for Deliverable reviews</span>
+              <input type="checkbox" defaultChecked className="accent-cyan-400 h-4 w-4 bg-[#0A0D14] border-slate-700 rounded cursor-pointer" />
+              <span>Deliverable approval notices</span>
             </label>
             <label className="flex items-center gap-3 cursor-pointer select-none">
-              <input type="checkbox" defaultChecked className="accent-accent-primary h-4 w-4 bg-bg-secondary border-border-custom rounded" />
-              <span>Stripe webhook confirmation emails</span>
+              <input type="checkbox" defaultChecked className="accent-cyan-400 h-4 w-4 bg-[#0A0D14] border-slate-700 rounded cursor-pointer" />
+              <span>Payment receipts & invoices</span>
             </label>
             <label className="flex items-center gap-3 cursor-pointer select-none">
-              <input type="checkbox" className="accent-accent-primary h-4 w-4 bg-bg-secondary border-border-custom rounded" />
-              <span>Shivam's direct code commit logs</span>
+              <input type="checkbox" defaultChecked className="accent-cyan-400 h-4 w-4 bg-[#0A0D14] border-slate-700 rounded cursor-pointer" />
+              <span>Support ticket status updates</span>
             </label>
           </div>
         </div>
       </div>
-
-      {/* 2FA SETUP SIMULATED MODAL */}
-      <AnimatePresence>
-        {show2FA && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.6 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShow2FA(false)}
-              className="absolute inset-0 bg-black"
-            ></motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-sm bg-bg-card border border-border-custom rounded-card p-6 shadow-glow overflow-hidden space-y-5"
-            >
-              <div className="flex justify-between items-center pb-3 border-b border-border-custom/50">
-                <div className="flex items-center gap-2">
-                  <Key className="h-4.5 w-4.5 text-accent-primary" />
-                  <span className="font-mono text-xs font-bold text-text-primary uppercase tracking-widest">
-                    // 2FA CONSENSUS KEY
-                  </span>
-                </div>
-              </div>
-
-              <div className="text-center space-y-4">
-                <p className="text-xs text-text-secondary">
-                  Scan the verification bar using Google Authenticator and enter your OTP token code.
-                </p>
-
-                {/* QR Code mockup */}
-                <div className="mx-auto h-32 w-32 bg-white p-2 rounded flex items-center justify-center border border-accent-primary/20 shadow-glow">
-                  <img
-                    src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120"
-                    alt="Simulated QR Code"
-                    className="h-full w-full object-cover filter contrast-125"
-                  />
-                </div>
-
-                <form onSubmit={handleVerify2FA} className="space-y-3 text-left">
-                  <div>
-                    <label className="block font-mono text-[9px] text-text-muted uppercase mb-1">
-                      OTP TOKEN CODE (any 6 digits)
-                    </label>
-                    <input
-                      required
-                      type="text"
-                      placeholder="e.g. 123456"
-                      maxLength={6}
-                      value={otpCode}
-                      onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                      className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary text-center px-4 py-2 text-sm font-mono tracking-widest rounded-input outline-none"
-                    />
-                  </div>
-
-                  {error2fa && (
-                    <span className="block font-mono text-[9px] text-brand-error uppercase text-center">
-                      {error2fa}
-                    </span>
-                  )}
-
-                  <div className="grid grid-cols-2 gap-3 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setShow2FA(false)}
-                      className="py-2 bg-bg-secondary border border-border-custom text-text-secondary hover:text-text-primary font-mono text-[10px] uppercase rounded"
-                    >
-                      [CANCEL]
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={verifying2fa || otpCode.length < 6}
-                      className="py-2 bg-accent-primary text-bg-primary font-mono text-[10px] font-bold uppercase rounded flex items-center justify-center gap-1.5"
-                    >
-                      {verifying2fa ? <Loader2 className="h-3 w-3 animate-spin" /> : "AUTHENTICATE"}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

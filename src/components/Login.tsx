@@ -16,11 +16,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   // States
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<"login" | "twoFactor" | "forgot">("login");
-  
-  // 2FA state
-  const [totpCode, setTotpCode] = useState("");
-  const [tempUser, setTempUser] = useState<any>(null);
+  const [view, setView] = useState<"login" | "forgot">("login");
   
   // Forgot Password state
   const [forgotEmail, setForgotEmail] = useState("");
@@ -37,33 +33,12 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     setError(null);
     try {
       const res = await api.login(email);
-      // Simulate 2FA check (if active or just a nice toggle)
-      if (res.user.email.includes("sterling") || res.user.email.includes("acme") || email.includes("2fa")) {
-        // Force 2FA flow to showcase high-security enterprise-grade standards
-        setTempUser(res);
-        setView("twoFactor");
-      } else {
-        onLoginSuccess(res.user);
-      }
+      onLoginSuccess(res.user);
     } catch (err: any) {
       setError(err.message || "Invalid authentication credentials.");
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleVerify2FA = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    // Simulate TOTP code matching (accept any 6-digit code for mock testing)
-    setTimeout(() => {
-      if (totpCode.length === 6) {
-        onLoginSuccess(tempUser.user);
-      } else {
-        setError("Invalid 2FA authentication code.");
-      }
-      setLoading(false);
-    }, 1000);
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -249,56 +224,6 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 GitHub Sign-In
               </button>
             </div>
-          </form>
-        )}
-
-        {view === "twoFactor" && (
-          <form onSubmit={handleVerify2FA} className="space-y-5">
-            <div className="p-3 bg-accent-primary/5 border border-accent-primary/20 rounded-input">
-              <p className="font-mono text-xs text-accent-primary">
-                [SECURE SHIELD] Enterprise MFA required for {email}. A simulated TOTP secret has been generated. Enter any 6-digit key.
-              </p>
-            </div>
-
-            <div>
-              <label className="block font-mono text-[11px] text-text-secondary uppercase tracking-widest mb-1.5">
-                // 2-Factor Authentication Code
-              </label>
-              <div className="relative">
-                <Shield className="absolute left-3 top-3.5 h-4 w-4 text-accent-primary" />
-                <input
-                  id="totp-input"
-                  type="text"
-                  maxLength={6}
-                  value={totpCode}
-                  onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ""))}
-                  placeholder="e.g. 123456"
-                  className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary pl-10 pr-4 py-3 text-center tracking-widest font-mono text-lg rounded-input outline-none transition-colors"
-                  required
-                />
-              </div>
-            </div>
-
-            <button
-              id="verify-2fa-button"
-              type="submit"
-              disabled={loading || totpCode.length !== 6}
-              className="w-full py-3 bg-accent-primary hover:bg-accent-hover text-bg-primary font-mono text-xs uppercase tracking-widest font-bold rounded-input transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                "VERIFY IDENTITY"
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => { setView("login"); setError(null); }}
-              className="w-full text-center font-mono text-[10px] text-text-muted hover:text-text-primary transition-colors"
-            >
-              [BACK TO CREDENTIALS]
-            </button>
           </form>
         )}
 
