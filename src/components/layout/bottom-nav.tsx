@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, FolderKanban, CheckSquare, MessageSquare, Download } from "lucide-react";
+import { LayoutDashboard, FolderKanban, CheckSquare, HelpCircle, Download } from "lucide-react";
 
 interface BottomNavProps {
   onOpenDownloadModal: () => void;
@@ -16,7 +16,7 @@ export function BottomNav({ onOpenDownloadModal }: BottomNavProps) {
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/project", label: "Workspace", icon: FolderKanban },
     { href: "/tasks", label: "Tasks", icon: CheckSquare },
-    { href: "/messages", label: "Messages", icon: MessageSquare },
+    { href: "/tickets", label: "Support", icon: HelpCircle },
   ];
 
   return (

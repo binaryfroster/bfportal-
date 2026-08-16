@@ -242,12 +242,12 @@ export default function Dashboard({ user, project, onNavigate, onActionClick }: 
 
           <div className="space-y-2.5">
             <button
-              onClick={() => onNavigate("messages")}
-              className="w-full py-3 bg-bg-secondary border border-border-custom hover:border-accent-primary/60 hover:bg-bg-primary text-text-primary font-mono text-xs text-left px-4 rounded-input flex items-center justify-between transition-all group cursor-pointer"
+              onClick={() => onNavigate("tickets")}
+              className="w-full py-3 bg-bg-secondary border border-border-custom hover:border-accent-primary/60 hover:bg-bg-primary text-text-primary font-mono text-xs text-left px-4 rounded-input flex items-center justify-between transition-all group cursor-pointer shadow-glow-hover"
             >
               <span className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 text-accent-primary group-hover:animate-bounce" />
-                // START_NEW_MESSAGE
+                <HelpCircle className="h-4 w-4 text-accent-primary group-hover:animate-bounce" />
+                // RAISE_SUPPORT_TICKET
               </span>
               <ChevronRight className="h-3.5 w-3.5 text-text-muted" />
             </button>

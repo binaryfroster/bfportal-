@@ -1,7 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { SupportTicket, Project } from "../types";
 import { api } from "../lib/api";
-import { HelpCircle, Clock, AlertTriangle, CheckCircle, ChevronRight, MessageSquare, Plus, Loader2, X } from "lucide-react";
+import {
+  HelpCircle,
+  Clock,
+  AlertTriangle,
+  CheckCircle2,
+  Plus,
+  Search,
+  Filter,
+  Send,
+  UserCheck,
+  Activity,
+  ShieldAlert,
+  Sparkles,
+  Layers,
+  Tag,
+  X
+} from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface TicketsHubProps {
@@ -16,15 +32,21 @@ export default function TicketsHub({ project, user, userRole }: TicketsHubProps)
   const [submitting, setSubmitting] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
 
+  // Filters & Search
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [priorityFilter, setPriorityFilter] = useState<string>("ALL");
+
   // Form states
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState<"Bug" | "Feature Request" | "Inquiry" | "System Outage">("Bug");
+  const [category, setCategory] = useState<"Bug Report" | "Change Request" | "General Question" | "System Outage">("Bug Report");
   const [priority, setPriority] = useState<"Low" | "Medium" | "High" | "Critical">("High");
   const [description, setDescription] = useState("");
 
-  // Admin response states
+  // Response states
   const [adminResponse, setAdminResponse] = useState("");
+  const [adminSender, setAdminSender] = useState<"Shivam" | "Jawad" | "Digvijay">("Shivam");
   const [resolving, setResolving] = useState(false);
 
   const loadTickets = async () => {
@@ -34,6 +56,8 @@ export default function TicketsHub({ project, user, userRole }: TicketsHubProps)
       if (selectedTicket) {
         const refreshed = data.find((t) => t.id === selectedTicket.id);
         if (refreshed) setSelectedTicket(refreshed);
+      } else if (data.length > 0) {
+        setSelectedTicket(data[0]);
       }
     } catch (err) {
       console.error("Failed loading ticket hub:", err);
@@ -46,7 +70,17 @@ export default function TicketsHub({ project, user, userRole }: TicketsHubProps)
     loadTickets();
     const interval = setInterval(loadTickets, 15000);
     return () => clearInterval(interval);
-  }, [project, selectedTicket]);
+  }, [project]);
+
+  const filteredTickets = tickets.filter((t) => {
+    const matchSearch =
+      t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.category.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchStatus = statusFilter === "ALL" || t.status === statusFilter;
+    const matchPriority = priorityFilter === "ALL" || t.priority === priorityFilter;
+    return matchSearch && matchStatus && matchPriority;
+  });
 
   const handleCreateTicket = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,18 +88,12 @@ export default function TicketsHub({ project, user, userRole }: TicketsHubProps)
 
     setSubmitting(true);
     try {
-      const catMap: Record<string, string> = {
-        "Bug": "Bug Report",
-        "Feature Request": "Change Request",
-        "Inquiry": "General Question",
-        "System Outage": "Bug Report"
-      };
       await api.raiseTicket({
         projectId: project.id,
         title,
-        category: catMap[category] || "General Question",
+        category,
         priority: priority === "Critical" ? "Urgent" : priority,
-        description
+        description,
       });
       setTitle("");
       setDescription("");
@@ -78,14 +106,17 @@ export default function TicketsHub({ project, user, userRole }: TicketsHubProps)
     }
   };
 
-  const handleAdminRespond = async (e: React.FormEvent, statusChange?: "Resolved" | "In Progress") => {
+  const handleRespond = async (e: React.FormEvent, statusChange?: "Resolved" | "In Progress") => {
     e.preventDefault();
     if (!selectedTicket || (!adminResponse && !statusChange)) return;
 
     setResolving(true);
     try {
       if (adminResponse) {
-        await api.replyTicket(selectedTicket.id, adminResponse);
+        const prefix = userRole === "admin" 
+          ? `[${adminSender === "Shivam" ? "Shivam Dube (AI Lead)" : adminSender === "Jawad" ? "Jawad Khan (Backend Lead)" : "Digvijay Kadam (UX Lead)"}]: `
+          : "";
+        await api.replyTicket(selectedTicket.id, `${prefix}${adminResponse}`);
       }
       if (statusChange) {
         await api.updateTicketStatus(selectedTicket.id, statusChange);
@@ -93,7 +124,7 @@ export default function TicketsHub({ project, user, userRole }: TicketsHubProps)
       setAdminResponse("");
       await loadTickets();
     } catch (err) {
-      console.error("Admin ticket operation failed:", err);
+      console.error("Ticket operation failed:", err);
     } finally {
       setResolving(false);
     }
@@ -101,103 +132,208 @@ export default function TicketsHub({ project, user, userRole }: TicketsHubProps)
 
   const getSlaHours = (p: string) => {
     switch (p) {
-      case "Critical": return "SLA Guarantee: <1 Hour Response (pager alert)";
-      case "High": return "SLA Guarantee: <4 Hours Response (high priority)";
-      case "Medium": return "SLA Guarantee: <12 Hours Response";
-      default: return "SLA Guarantee: <24 Hours Response";
+      case "Critical":
+      case "Urgent":
+        return { text: "< 1 Hour Response (pager alert)", badge: "bg-red-500/20 text-red-400 border-red-500/30" };
+      case "High":
+        return { text: "< 4 Hours Response (high priority)", badge: "bg-amber-500/20 text-amber-400 border-amber-500/30" };
+      case "Medium":
+        return { text: "< 12 Hours Response", badge: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30" };
+      default:
+        return { text: "< 24 Hours Response", badge: "bg-slate-500/20 text-slate-400 border-slate-500/30" };
     }
   };
 
   if (loading) {
     return (
-      <div className="bg-bg-card border border-border-custom p-6 rounded-card animate-pulse h-[400px]"></div>
+      <div className="bg-[#0F172A] border border-slate-800 p-6 rounded-xl animate-pulse h-[400px] w-full" />
     );
   }
 
+  const openTicketsCount = tickets.filter((t) => t.status !== "Resolved").length;
+  const criticalCount = tickets.filter((t) => (t.priority === "Critical" || t.priority === "Urgent") && t.status !== "Resolved").length;
+
   return (
     <div className="space-y-6">
-      {/* Header bar */}
-      <div className="flex justify-between items-center pb-4 border-b border-border-custom/40">
-        <div className="flex items-center gap-2">
-          <HelpCircle className="h-4.5 w-4.5 text-accent-primary" />
-          <span className="font-mono text-xs text-text-secondary uppercase tracking-widest">// SECURE HELPDESK ENGINE</span>
+      {/* SLA & SUPPORT METRICS BANNER */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-[#0F172A]/90 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">Active Incidents</span>
+            <span className="text-2xl font-bold font-sans text-white">{openTicketsCount}</span>
+          </div>
+          <div className="p-2.5 bg-cyan-500/10 border border-cyan-500/20 rounded-lg">
+            <HelpCircle className="h-5 w-5 text-cyan-400" />
+          </div>
         </div>
 
-        {userRole === "client" && (
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="px-4 py-2 bg-accent-primary hover:bg-accent-hover text-bg-primary font-mono text-xs uppercase tracking-wider font-bold rounded-input transition-all flex items-center gap-1.5 cursor-pointer shadow-glow-strong"
-          >
-            <Plus className="h-4 w-4 stroke-[2.5]" />
-            RAISE SUPPORT TICKET
-          </button>
-        )}
+        <div className="bg-[#0F172A]/90 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">Critical / P1 Incidents</span>
+            <span className={`text-2xl font-bold font-sans ${criticalCount > 0 ? "text-red-400 animate-pulse" : "text-emerald-400"}`}>
+              {criticalCount}
+            </span>
+          </div>
+          <div className="p-2.5 bg-red-500/10 border border-red-500/20 rounded-lg">
+            <ShieldAlert className="h-5 w-5 text-red-400" />
+          </div>
+        </div>
+
+        <div className="bg-[#0F172A]/90 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">Avg Response Time</span>
+            <span className="text-2xl font-bold font-sans text-cyan-400">~18 Mins</span>
+          </div>
+          <div className="p-2.5 bg-cyan-500/10 border border-cyan-500/20 rounded-lg">
+            <Clock className="h-5 w-5 text-cyan-400" />
+          </div>
+        </div>
+
+        <div className="bg-[#0F172A]/90 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">SLA Compliance</span>
+            <span className="text-2xl font-bold font-sans text-emerald-400">99.8%</span>
+          </div>
+          <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+            <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Ticket List column */}
-        <div className="lg:col-span-1 space-y-3">
-          <span className="block font-mono text-[9px] text-text-muted uppercase tracking-wider">// ENQUEUED TICKETS</span>
+      {/* Header bar */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-800">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 bg-cyan-500/10 border border-cyan-500/20 rounded-lg">
+            <Activity className="h-5 w-5 text-cyan-400 animate-pulse" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-white tracking-wide">Enterprise Support & Ticket Triage</h2>
+            <span className="text-[10px] font-mono text-slate-400">Direct technical escalation pipeline</span>
+          </div>
+        </div>
 
-          {tickets.length === 0 ? (
-            <div className="p-8 text-center border border-dashed border-border-custom bg-bg-card rounded-card text-text-secondary">
-              <span className="font-mono text-[10px] text-text-muted">// QUEUE_EMPTY</span>
+        <button
+          onClick={() => setShowCreateForm(true)}
+          className="px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-mono text-xs uppercase tracking-wider font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-lg shadow-cyan-500/20"
+        >
+          <Plus className="h-4 w-4 stroke-[2.5]" />
+          RAISE SUPPORT TICKET
+        </button>
+      </div>
+
+      {/* SEARCH & FILTERS BAR */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-[#0F172A]/80 border border-slate-800 rounded-xl">
+        <div className="relative">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search tickets..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3 py-1.5 bg-[#0A0D14] border border-slate-700 rounded-lg text-xs font-sans text-white placeholder-slate-500 focus:border-cyan-400 outline-none"
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-slate-400 shrink-0" />
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="w-full bg-[#0A0D14] border border-slate-700 rounded-lg text-xs font-mono text-slate-200 px-2.5 py-1.5 focus:border-cyan-400 outline-none cursor-pointer"
+          >
+            <option value="ALL">All Statuses</option>
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+          </select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Tag className="h-4 w-4 text-slate-400 shrink-0" />
+          <select
+            value={priorityFilter}
+            onChange={(e) => setPriorityFilter(e.target.value)}
+            className="w-full bg-[#0A0D14] border border-slate-700 rounded-lg text-xs font-mono text-slate-200 px-2.5 py-1.5 focus:border-cyan-400 outline-none cursor-pointer"
+          >
+            <option value="ALL">All Priorities</option>
+            <option value="Critical">Critical (P1)</option>
+            <option value="High">High (P2)</option>
+            <option value="Medium">Medium (P3)</option>
+            <option value="Low">Low (P4)</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Ticket List column (5 cols) */}
+        <div className="lg:col-span-5 space-y-3">
+          <span className="block font-mono text-[9px] text-slate-400 uppercase tracking-wider">// ENQUEUED TICKETS ({filteredTickets.length})</span>
+
+          {filteredTickets.length === 0 ? (
+            <div className="p-8 text-center border border-dashed border-slate-800 bg-[#0F172A] rounded-xl text-slate-400">
+              <span className="font-mono text-[10px] text-slate-500">// QUEUE_EMPTY</span>
             </div>
           ) : (
-            tickets.map((t) => {
-              const isSelected = selectedTicket?.id === t.id;
-              
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => setSelectedTicket(t)}
-                  className={`w-full text-left p-4 rounded-input border transition-all flex flex-col gap-2.5 cursor-pointer outline-none ${
-                    isSelected ? "bg-accent-primary/5 border-accent-primary shadow-glow" : "bg-bg-card border-border-custom hover:border-border-custom/80"
-                  }`}
-                >
-                  <div className="space-y-1 w-full min-w-0">
-                    <h4 className="font-sans text-xs font-bold text-text-primary truncate">{t.title}</h4>
-                    <p className="font-mono text-[8px] text-accent-primary uppercase tracking-wider">Category: {t.category}</p>
-                  </div>
+            <div className="space-y-2.5 max-h-[600px] overflow-y-auto pr-1">
+              {filteredTickets.map((t) => {
+                const isSelected = selectedTicket?.id === t.id;
+                const sla = getSlaHours(t.priority);
 
-                  <div className="flex items-center justify-between w-full font-mono text-[8px]">
-                    <span className={`px-1.5 py-0.5 border rounded uppercase ${
-                      t.priority === "Critical" ? "bg-brand-error/15 border-brand-error/25 text-brand-error animate-pulse" :
-                      t.priority === "High" ? "bg-brand-warning/15 border-brand-warning/25 text-brand-warning" :
-                      "bg-bg-secondary border-border-custom text-text-muted"
-                    }`}>
-                      {t.priority}
-                    </span>
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => setSelectedTicket(t)}
+                    className={`w-full text-left p-4 rounded-xl border transition-all flex flex-col gap-2.5 cursor-pointer outline-none ${
+                      isSelected
+                        ? "bg-cyan-500/10 border-cyan-500/50 shadow-lg shadow-cyan-500/10"
+                        : "bg-[#0F172A] border-slate-800 hover:border-slate-700 text-white"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2 w-full">
+                      <h4 className="font-sans text-xs font-bold text-white truncate flex-1">{t.title}</h4>
+                      <span className={`text-[8px] font-mono font-bold px-2 py-0.5 rounded uppercase border ${
+                        t.status === "Resolved"
+                          ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                          : "bg-cyan-500/20 text-cyan-400 border-cyan-500/30"
+                      }`}>
+                        {t.status}
+                      </span>
+                    </div>
 
-                    <span className={`px-1.5 py-0.5 border rounded uppercase ${
-                      t.status === "Resolved" ? "bg-brand-success/15 border-brand-success/25 text-brand-success" :
-                      "bg-accent-primary/15 border-accent-primary/25 text-accent-primary animate-pulse"
-                    }`}>
-                      {t.status}
-                    </span>
-                  </div>
-                </button>
-              );
-            })
+                    <p className="text-[11px] text-slate-400 line-clamp-2 font-sans">{t.description}</p>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 w-full text-[9px] font-mono text-slate-400">
+                      <span className="flex items-center gap-1 text-slate-300">
+                        <Layers className="h-3 w-3 text-cyan-400" />
+                        {t.category}
+                      </span>
+
+                      <span className={`px-1.5 py-0.5 rounded border uppercase ${sla.badge}`}>
+                        {t.priority}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           )}
         </div>
 
-        {/* Selected Ticket detailed Thread view */}
-        <div className="lg:col-span-2">
+        {/* Selected Ticket detailed Thread view (7 cols) */}
+        <div className="lg:col-span-7">
           {selectedTicket ? (
-            <div className="bg-bg-card border border-border-custom p-6 rounded-card space-y-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 h-24 w-24 bg-accent-primary/5 rounded-full blur-2xl pointer-events-none"></div>
-
+            <div className="bg-[#0F172A] border border-slate-800 p-6 rounded-xl space-y-6 relative overflow-hidden text-white">
               {/* Status header */}
-              <div className="flex justify-between items-center pb-4 border-b border-border-custom/50">
+              <div className="flex justify-between items-center pb-4 border-b border-slate-800">
                 <div className="space-y-0.5">
-                  <span className="block font-mono text-[9px] text-text-muted uppercase">// TICKET STACK</span>
-                  <h3 className="font-sans text-base font-bold text-text-primary">{selectedTicket.title}</h3>
+                  <span className="block font-mono text-[9px] text-slate-400 uppercase">// TICKET STACK</span>
+                  <h3 className="font-sans text-base font-bold text-white">{selectedTicket.title}</h3>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`font-mono text-[9px] px-2 py-0.5 border rounded uppercase ${
-                    selectedTicket.status === "Resolved" ? "bg-brand-success/15 border-brand-success/30 text-brand-success" :
-                    "bg-accent-primary/15 border-accent-primary/30 text-accent-primary"
+                  <span className={`font-mono text-[9px] px-2.5 py-1 rounded-lg border font-bold uppercase ${
+                    selectedTicket.status === "Resolved"
+                      ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-400"
+                      : "bg-cyan-500/20 border-cyan-500/30 text-cyan-400 animate-pulse"
                   }`}>
                     {selectedTicket.status}
                   </span>
@@ -205,34 +341,46 @@ export default function TicketsHub({ project, user, userRole }: TicketsHubProps)
               </div>
 
               {/* Description */}
-              <div className="p-4 bg-bg-secondary border border-border-custom rounded-input space-y-2">
-                <span className="block font-mono text-[9px] text-text-muted uppercase">// DESCRIPTION & SYSTEM SPECS</span>
-                <p className="font-sans text-xs text-text-secondary leading-relaxed whitespace-pre-line">
+              <div className="p-4 bg-[#0A0D14] border border-slate-800 rounded-xl space-y-2">
+                <span className="block font-mono text-[9px] text-slate-400 uppercase">// DESCRIPTION & SYSTEM SPECS</span>
+                <p className="font-sans text-xs text-slate-200 leading-relaxed whitespace-pre-line">
                   {selectedTicket.description}
                 </p>
-                <div className="pt-2 border-t border-border-custom/30 flex justify-between font-mono text-[9px] text-text-muted">
-                  <span>SLA Guarantee: {getSlaHours(selectedTicket.priority)}</span>
+                <div className="pt-2 border-t border-slate-800 flex justify-between font-mono text-[9px] text-slate-400">
+                  <span>SLA Guarantee: {getSlaHours(selectedTicket.priority).text}</span>
                   <span>Raised by: {selectedTicket.clientName}</span>
                 </div>
               </div>
 
               {/* Conversations feed */}
               <div className="space-y-3">
-                <span className="block font-mono text-[9px] text-text-muted uppercase">// MESSAGING THREAD HISTORY</span>
-                
+                <div className="flex items-center justify-between">
+                  <span className="block font-mono text-[9px] text-slate-400 uppercase">// MESSAGING THREAD HISTORY ({selectedTicket.replies?.length || 0})</span>
+                  <span className="text-[9px] font-mono text-emerald-400 flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
+                    Live Support Channel
+                  </span>
+                </div>
+
                 {selectedTicket.replies && selectedTicket.replies.length === 0 ? (
-                  <div className="text-center py-6 text-text-muted font-mono text-[9px] border border-dashed border-border-custom/50 rounded">
-                    // AWAITING_COGNITIVE_RESPONSE
+                  <div className="text-center py-6 text-slate-500 font-mono text-[9px] border border-dashed border-slate-800 rounded-xl">
+                    // AWAITING_ENGINEERING_RESPONSE
                   </div>
                 ) : (
-                  <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1">
+                  <div className="space-y-3 max-h-[240px] overflow-y-auto pr-1">
                     {selectedTicket.replies?.map((hist, i) => (
-                      <div key={i} className="p-3 bg-bg-secondary/50 border border-border-custom/60 rounded-input space-y-1.5">
+                      <div key={i} className="p-3.5 bg-[#0A0D14] border border-slate-800 rounded-xl space-y-1.5">
                         <div className="flex justify-between items-center font-mono text-[9px]">
-                          <span className="text-accent-primary font-bold">{hist.senderName}</span>
-                          <span className="text-text-muted">{new Date(hist.timestamp).toLocaleDateString()} {new Date(hist.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                          <span className="text-cyan-400 font-bold flex items-center gap-1">
+                            <Sparkles className="h-3 w-3 text-cyan-400" />
+                            {hist.senderName}
+                          </span>
+                          <span className="text-slate-500">
+                            {new Date(hist.timestamp).toLocaleDateString()}{" "}
+                            {new Date(hist.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          </span>
                         </div>
-                        <p className="font-sans text-xs text-text-secondary leading-relaxed">
+                        <p className="font-sans text-xs text-slate-200 leading-relaxed">
                           {hist.content}
                         </p>
                       </div>
@@ -241,156 +389,182 @@ export default function TicketsHub({ project, user, userRole }: TicketsHubProps)
                 )}
               </div>
 
-              {/* Reply box */}
-              {selectedTicket.status !== "Resolved" && (
-                <form onSubmit={handleAdminRespond} className="space-y-3 pt-4 border-t border-border-custom/50">
-                  <div className="flex justify-between items-center">
-                    <span className="font-mono text-[9px] text-text-muted uppercase">// APPEND MESSAGE RESPONSE</span>
-                    {userRole === "admin" && (
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={(e) => handleAdminRespond(e, "Resolved")}
-                          className="px-2.5 py-1 bg-brand-success/15 hover:bg-brand-success text-brand-success hover:text-bg-primary font-mono text-[9px] font-bold uppercase border border-brand-success/20 hover:border-transparent rounded"
-                        >
-                          [RESOLVE_TICKET]
-                        </button>
-                      </div>
-                    )}
+              {/* Admin switcher & action bar */}
+              {userRole === "admin" && (
+                <div className="p-3 bg-[#0A0D14] border border-slate-800 rounded-xl flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">Reply As:</span>
+                    <select
+                      value={adminSender}
+                      onChange={(e: any) => setAdminSender(e.target.value)}
+                      className="bg-[#0F172A] border border-slate-700 text-cyan-400 font-mono text-[10px] px-2 py-1 rounded-lg outline-none cursor-pointer"
+                    >
+                      <option value="Shivam">Shivam Dube (AI)</option>
+                      <option value="Jawad">Jawad Khan (Backend)</option>
+                      <option value="Digvijay">Digvijay Kadam (Design)</option>
+                    </select>
                   </div>
 
+                  {selectedTicket.status !== "Resolved" && (
+                    <button
+                      type="button"
+                      onClick={(e) => handleRespond(e, "Resolved")}
+                      className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer"
+                    >
+                      [MARK_RESOLVED]
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Reply box */}
+              {selectedTicket.status !== "Resolved" && (
+                <form onSubmit={handleRespond} className="space-y-3 pt-2">
                   <textarea
                     required
                     rows={3}
-                    placeholder={userRole === "admin" ? "Administrative response..." : "Provide follow-up specifics..."}
+                    placeholder="Provide technical investigation details or clarification..."
                     value={adminResponse}
                     onChange={(e) => setAdminResponse(e.target.value)}
-                    className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary p-3 text-xs rounded-input outline-none font-sans"
-                  ></textarea>
+                    className="w-full bg-[#0A0D14] border border-slate-700 focus:border-cyan-400 text-white p-3 text-xs rounded-xl outline-none font-sans"
+                  />
 
                   <div className="flex justify-end">
                     <button
                       type="submit"
-                      disabled={resolving || !adminResponse}
-                      className="px-6 py-2 bg-accent-primary hover:bg-accent-hover text-bg-primary font-mono text-xs font-bold uppercase rounded-input tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-glow-strong"
+                      disabled={!adminResponse.trim() || resolving}
+                      className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold font-mono text-xs uppercase rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
                     >
-                      {resolving ? <Loader2 className="h-4.5 w-4.5 animate-spin" /> : "DISPATCH_REPLY"}
+                      <Send className="h-3.5 w-3.5" />
+                      {resolving ? "DISPATCHING..." : "DISPATCH REPLY"}
                     </button>
                   </div>
                 </form>
               )}
             </div>
           ) : (
-            <div className="h-full border border-dashed border-border-custom/50 bg-bg-card/40 rounded-card flex flex-col items-center justify-center text-center p-12 text-text-secondary">
-              <HelpCircle className="h-10 w-10 text-text-muted mx-auto mb-3 animate-pulse" />
-              <p className="font-sans text-xs font-semibold text-text-primary">No ticket selected</p>
-              <p className="font-mono text-[10px] text-text-muted uppercase mt-0.5">// CHOOSE AN ACTIVE STACK TO RESPOND</p>
+            <div className="h-full min-h-[400px] border border-dashed border-slate-800 bg-[#0F172A]/50 rounded-xl flex flex-col items-center justify-center text-center p-12 space-y-3">
+              <HelpCircle className="h-10 w-10 text-slate-500 animate-pulse" />
+              <p className="text-sm font-bold text-white">No Ticket Selected</p>
+              <p className="text-xs font-mono text-slate-400">// Select a ticket from the active queue to view conversation</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* CREATE NEW SUPPORT TICKET DIALOG MODAL */}
+      {/* CREATE NEW SUPPORT TICKET MODAL */}
       <AnimatePresence>
         {showCreateForm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
-              animate={{ opacity: 0.6 }}
+              animate={{ opacity: 0.7 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowCreateForm(false)}
-              className="absolute inset-0 bg-black"
-            ></motion.div>
+              className="absolute inset-0 bg-black backdrop-blur-sm cursor-pointer"
+            />
 
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-lg bg-bg-card border border-border-custom rounded-card p-6 shadow-glow overflow-hidden space-y-5"
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="relative w-full max-w-xl bg-[#0F172A] border border-slate-800 rounded-2xl p-6 shadow-2xl overflow-hidden space-y-5 z-10 text-white"
             >
-              {/* Header */}
-              <div className="flex justify-between items-center pb-3 border-b border-border-custom/50">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-accent-primary animate-pulse" />
-                  <span className="font-mono text-xs font-bold text-text-primary uppercase tracking-widest">// INITIALIZE TICKET PIPELINE</span>
+              <div className="flex justify-between items-center pb-3 border-b border-slate-800">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 bg-cyan-500/10 border border-cyan-500/20 rounded-lg">
+                    <AlertTriangle className="h-5 w-5 text-cyan-400 animate-pulse" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white">Create New Support Incident</h3>
+                    <span className="text-[10px] font-mono text-slate-400">Direct technical pipeline to engineers</span>
+                  </div>
                 </div>
                 <button
                   onClick={() => setShowCreateForm(false)}
-                  className="p-1 rounded-full bg-bg-secondary hover:text-accent-primary border border-border-custom cursor-pointer"
+                  className="p-1 rounded-lg bg-slate-800 hover:text-cyan-400 border border-slate-700 cursor-pointer"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
-              {/* Form */}
               <form onSubmit={handleCreateTicket} className="space-y-4">
                 <div>
-                  <label className="block font-mono text-[9px] text-text-muted uppercase mb-1">Issue Headline</label>
+                  <label className="block text-[10px] font-mono text-slate-400 uppercase mb-1.5">
+                    Incident Title / Subject *
+                  </label>
                   <input
                     required
                     type="text"
                     placeholder="e.g. FCA ledger latency lag on matching engine..."
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary px-3 py-2 text-xs rounded-input outline-none font-sans font-semibold"
+                    className="w-full bg-[#0A0D14] border border-slate-700 focus:border-cyan-400 text-white px-3.5 py-2.5 text-xs rounded-xl outline-none font-sans font-semibold"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block font-mono text-[9px] text-text-muted uppercase mb-1">Impact Category</label>
+                    <label className="block text-[10px] font-mono text-slate-400 uppercase mb-1.5">
+                      Issue Category
+                    </label>
                     <select
                       value={category}
                       onChange={(e: any) => setCategory(e.target.value)}
-                      className="w-full bg-bg-secondary border border-border-custom text-text-primary px-3 py-2 text-xs rounded-input outline-none font-mono"
+                      className="w-full bg-[#0A0D14] border border-slate-700 text-white px-3 py-2 text-xs rounded-xl outline-none font-mono cursor-pointer"
                     >
-                      <option value="Bug">Technical Bug</option>
-                      <option value="Feature Request">Feature Request</option>
-                      <option value="Inquiry">General Inquiry</option>
-                      <option value="System Outage">Consensus System Outage</option>
+                      <option value="Bug Report">Technical Bug Report</option>
+                      <option value="Change Request">Change / Feature Request</option>
+                      <option value="General Question">General Question / Inquiry</option>
+                      <option value="System Outage">System Outage / Emergency</option>
                     </select>
                   </div>
+
                   <div>
-                    <label className="block font-mono text-[9px] text-text-muted uppercase mb-1">Urgency Priority</label>
+                    <label className="block text-[10px] font-mono text-slate-400 uppercase mb-1.5">
+                      Urgency / SLA Priority
+                    </label>
                     <select
                       value={priority}
                       onChange={(e: any) => setPriority(e.target.value)}
-                      className="w-full bg-bg-secondary border border-border-custom text-text-primary px-3 py-2 text-xs rounded-input outline-none font-mono"
+                      className="w-full bg-[#0A0D14] border border-slate-700 text-white px-3 py-2 text-xs rounded-xl outline-none font-mono cursor-pointer"
                     >
-                      <option value="Low">Low (no operational block)</option>
-                      <option value="Medium">Medium Priority</option>
-                      <option value="High">High (releasing hurdle)</option>
-                      <option value="Critical">Critical Outage (pager breach)</option>
+                      <option value="Critical">Critical P1 (&lt;1 Hr Response)</option>
+                      <option value="High">High P2 (&lt;4 Hrs Response)</option>
+                      <option value="Medium">Medium P3 (&lt;12 Hrs Response)</option>
+                      <option value="Low">Low P4 (&lt;24 Hrs Response)</option>
                     </select>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block font-mono text-[9px] text-text-muted uppercase mb-1">Deficiency Specifications details</label>
+                  <label className="block text-[10px] font-mono text-slate-400 uppercase mb-1.5">
+                    Detailed Description & Error Logs *
+                  </label>
                   <textarea
                     required
                     rows={4}
-                    placeholder="Provide console logs or detail description..."
+                    placeholder="Provide console logs or detailed description..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-text-primary p-3 text-xs rounded-input outline-none font-sans"
-                  ></textarea>
+                    className="w-full bg-[#0A0D14] border border-slate-700 focus:border-cyan-400 text-white p-3 text-xs rounded-xl outline-none font-sans"
+                  />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 pt-2">
+                <div className="grid grid-cols-2 gap-3 pt-3">
                   <button
                     type="button"
                     onClick={() => setShowCreateForm(false)}
-                    className="py-2.5 bg-bg-secondary border border-border-custom text-text-secondary hover:text-text-primary font-mono text-[10px] uppercase rounded-input transition-colors cursor-pointer"
+                    className="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs uppercase rounded-xl transition-colors cursor-pointer"
                   >
-                    [ABORT]
+                    [CANCEL]
                   </button>
                   <button
                     type="submit"
-                    disabled={submitting || !title || !description}
-                    className="py-2.5 bg-accent-primary hover:bg-accent-hover text-bg-primary font-mono text-[10px] uppercase tracking-widest font-bold rounded-input transition-all flex items-center justify-center gap-2 cursor-pointer border border-transparent shadow-glow"
+                    disabled={!title || !description || submitting}
+                    className="py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold font-mono text-xs uppercase rounded-xl cursor-pointer transition-all"
                   >
-                    {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "DISPATCH_TICKET"}
+                    {submitting ? "ENQUEUING..." : "DISPATCH_TICKET"}
                   </button>
                 </div>
               </form>
@@ -401,4 +575,3 @@ export default function TicketsHub({ project, user, userRole }: TicketsHubProps)
     </div>
   );
 }
-export { X };
