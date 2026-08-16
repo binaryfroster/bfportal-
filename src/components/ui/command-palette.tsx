@@ -47,9 +47,8 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     { name: "Go to Change Requests", icon: Plus, category: "Navigation", href: "/change-requests" },
     { name: "Go to Maintenance & SLA", icon: ShieldCheck, category: "Navigation", href: "/maintenance" },
     { name: "Go to Handover Vault", icon: FolderOpen, category: "Navigation", href: "/handover" },
-    { name: "Go to Knowledge Base", icon: Search, category: "Navigation", href: "/knowledge-base" },
-    { name: "Go to Integrations Hub", icon: Settings, category: "Navigation", href: "/integrations" },
-    { name: "Go to Settings", icon: Settings, category: "Navigation", href: "/settings" },
+    { label: "Go to Knowledge Base", name: "Go to Knowledge Base", icon: Search, category: "Navigation", href: "/knowledge-base" },
+    { label: "Go to Settings", name: "Go to Settings", icon: Settings, category: "Navigation", href: "/settings" },
     { name: "Ask AI Client Copilot", icon: Bot, category: "AI Actions", href: "/messages?action=ai" },
   ];
 

@@ -74,7 +74,6 @@ const auditResults = [];
     { path: '/change-requests', name: 'Change Requests' },
     { path: '/feedback', name: 'Client Feedback' },
     { path: '/handover', name: 'Project Handover' },
-    { path: '/integrations', name: 'App Integrations' },
     { path: '/knowledge-base', name: 'Knowledge Base' },
     { path: '/maintenance', name: 'SLA Maintenance' },
     { path: '/onboarding', name: 'Client Onboarding' },

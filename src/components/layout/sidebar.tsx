@@ -63,7 +63,6 @@ export function Sidebar({ className, isOpen, setIsOpen, onOpenDownloadModal }: S
     { label: "Credentials", path: "/credential-vault", icon: KeyRound, roles: ["client", "admin", "client_admin", "super_admin"] },
     { label: "Analytics", path: "/analytics", icon: BarChart3, roles: ["client", "admin", "client_admin", "super_admin"] },
     { label: "Knowledge Base", path: "/knowledge-base", icon: MessageCircleQuestion, roles: ["client", "admin", "client_admin", "client_user", "super_admin"] },
-    { label: "Integrations", path: "/integrations", icon: Plug, roles: ["client", "admin", "client_admin", "super_admin"] },
     { label: "API & Webhooks", path: "/api-keys", icon: Terminal, roles: ["client", "admin", "client_admin", "super_admin"] },
     { label: "User Settings", path: "/settings", icon: Settings, roles: ["client", "admin", "client_admin", "client_user", "super_admin"] },
     { label: "Admin Panel", path: "/admin", icon: ShieldAlert, roles: ["admin", "super_admin"] },
