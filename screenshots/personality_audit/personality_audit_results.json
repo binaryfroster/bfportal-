@@ -1,0 +1,1454 @@
+{
+  "personalities": [
+    {
+      "user": "Shivam Dube",
+      "email": "shivam@binaryfroster.com",
+      "role": "admin",
+      "company": "Binary Froster",
+      "loginSuccess": true,
+      "routeResults": [
+        {
+          "route": "/dashboard",
+          "name": "Dashboard",
+          "user": "Shivam Dube",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/tasks",
+          "name": "Task Board",
+          "user": "Shivam Dube",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/tickets",
+          "name": "Support Tickets",
+          "user": "Shivam Dube",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/approvals",
+          "name": "Approvals",
+          "user": "Shivam Dube",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/change-requests",
+          "name": "Change Requests",
+          "user": "Shivam Dube",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/project",
+          "name": "Project Workspace",
+          "user": "Shivam Dube",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/billing",
+          "name": "Billing",
+          "user": "Shivam Dube",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/contracts",
+          "name": "Contracts",
+          "user": "Shivam Dube",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/files",
+          "name": "File Vault",
+          "user": "Shivam Dube",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/meetings",
+          "name": "Meetings",
+          "user": "Shivam Dube",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/messages",
+          "name": "Messages",
+          "user": "Shivam Dube",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/admin",
+          "name": "Admin Control Center",
+          "user": "Shivam Dube",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/client-360",
+          "name": "Client 360",
+          "user": "Shivam Dube",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/credential-vault",
+          "name": "Credential Vault",
+          "user": "Shivam Dube",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/api-keys",
+          "name": "API Keys",
+          "user": "Shivam Dube",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/analytics",
+          "name": "Analytics",
+          "user": "Shivam Dube",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/feedback",
+          "name": "Feedback",
+          "user": "Shivam Dube",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/handover",
+          "name": "Handover",
+          "user": "Shivam Dube",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/knowledge-base",
+          "name": "Knowledge Base",
+          "user": "Shivam Dube",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/maintenance",
+          "name": "Maintenance",
+          "user": "Shivam Dube",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/onboarding",
+          "name": "Onboarding",
+          "user": "Shivam Dube",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/settings",
+          "name": "Settings",
+          "user": "Shivam Dube",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        }
+      ],
+      "consoleErrors": 0
+    },
+    {
+      "user": "Digvijay Kadam",
+      "email": "digvijay@binaryfroster.com",
+      "role": "admin",
+      "company": "Binary Froster",
+      "loginSuccess": true,
+      "routeResults": [
+        {
+          "route": "/dashboard",
+          "name": "Dashboard",
+          "user": "Digvijay Kadam",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/tasks",
+          "name": "Task Board",
+          "user": "Digvijay Kadam",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/tickets",
+          "name": "Support Tickets",
+          "user": "Digvijay Kadam",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/approvals",
+          "name": "Approvals",
+          "user": "Digvijay Kadam",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/change-requests",
+          "name": "Change Requests",
+          "user": "Digvijay Kadam",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/project",
+          "name": "Project Workspace",
+          "user": "Digvijay Kadam",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/billing",
+          "name": "Billing",
+          "user": "Digvijay Kadam",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/contracts",
+          "name": "Contracts",
+          "user": "Digvijay Kadam",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/files",
+          "name": "File Vault",
+          "user": "Digvijay Kadam",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/meetings",
+          "name": "Meetings",
+          "user": "Digvijay Kadam",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/messages",
+          "name": "Messages",
+          "user": "Digvijay Kadam",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/admin",
+          "name": "Admin Control Center",
+          "user": "Digvijay Kadam",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/client-360",
+          "name": "Client 360",
+          "user": "Digvijay Kadam",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/credential-vault",
+          "name": "Credential Vault",
+          "user": "Digvijay Kadam",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/api-keys",
+          "name": "API Keys",
+          "user": "Digvijay Kadam",
+          "role": "admin",
+          "status": "timeout",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": [
+            "page.goto: Timeout 8000ms exceeded."
+          ]
+        },
+        {
+          "route": "/analytics",
+          "name": "Analytics",
+          "user": "Digvijay Kadam",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [
+            "DOWNLOAD APP",
+            "[EXPORT_CSV]",
+            "[EXPORT_PDF]",
+            "This Sprint",
+            "[REFRESH_TELEMETRY]"
+          ],
+          "errors": []
+        },
+        {
+          "route": "/feedback",
+          "name": "Feedback",
+          "user": "Digvijay Kadam",
+          "role": "admin",
+          "status": "timeout",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": [
+            "page.goto: Timeout 8000ms exceeded."
+          ]
+        },
+        {
+          "route": "/handover",
+          "name": "Handover",
+          "user": "Digvijay Kadam",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/knowledge-base",
+          "name": "Knowledge Base",
+          "user": "Digvijay Kadam",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/maintenance",
+          "name": "Maintenance",
+          "user": "Digvijay Kadam",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/onboarding",
+          "name": "Onboarding",
+          "user": "Digvijay Kadam",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/settings",
+          "name": "Settings",
+          "user": "Digvijay Kadam",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        }
+      ],
+      "consoleErrors": 0
+    },
+    {
+      "user": "Jawad Khan Hakim",
+      "email": "jawad@binaryfroster.com",
+      "role": "admin",
+      "company": "Binary Froster",
+      "loginSuccess": true,
+      "routeResults": [
+        {
+          "route": "/dashboard",
+          "name": "Dashboard",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/tasks",
+          "name": "Task Board",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/tickets",
+          "name": "Support Tickets",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/approvals",
+          "name": "Approvals",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/change-requests",
+          "name": "Change Requests",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/project",
+          "name": "Project Workspace",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/billing",
+          "name": "Billing",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/contracts",
+          "name": "Contracts",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/files",
+          "name": "File Vault",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/meetings",
+          "name": "Meetings",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/messages",
+          "name": "Messages",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/admin",
+          "name": "Admin Control Center",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/client-360",
+          "name": "Client 360",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/credential-vault",
+          "name": "Credential Vault",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/api-keys",
+          "name": "API Keys",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/analytics",
+          "name": "Analytics",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/feedback",
+          "name": "Feedback",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "timeout",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": [
+            "page.goto: Timeout 8000ms exceeded."
+          ]
+        },
+        {
+          "route": "/handover",
+          "name": "Handover",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/knowledge-base",
+          "name": "Knowledge Base",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/maintenance",
+          "name": "Maintenance",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "timeout",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": [
+            "page.goto: Timeout 8000ms exceeded."
+          ]
+        },
+        {
+          "route": "/onboarding",
+          "name": "Onboarding",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/settings",
+          "name": "Settings",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        }
+      ],
+      "consoleErrors": 0
+    },
+    {
+      "user": "Jawad Khan Hakim",
+      "email": "jawadkhanhakim@gmail.com",
+      "role": "admin",
+      "company": "Binary Froster",
+      "loginSuccess": true,
+      "routeResults": [
+        {
+          "route": "/dashboard",
+          "name": "Dashboard",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/tasks",
+          "name": "Task Board",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/tickets",
+          "name": "Support Tickets",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/approvals",
+          "name": "Approvals",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/change-requests",
+          "name": "Change Requests",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/project",
+          "name": "Project Workspace",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/billing",
+          "name": "Billing",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/contracts",
+          "name": "Contracts",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/files",
+          "name": "File Vault",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/meetings",
+          "name": "Meetings",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/messages",
+          "name": "Messages",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/admin",
+          "name": "Admin Control Center",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/client-360",
+          "name": "Client 360",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/credential-vault",
+          "name": "Credential Vault",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/api-keys",
+          "name": "API Keys",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/analytics",
+          "name": "Analytics",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/feedback",
+          "name": "Feedback",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/handover",
+          "name": "Handover",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/knowledge-base",
+          "name": "Knowledge Base",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/maintenance",
+          "name": "Maintenance",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/onboarding",
+          "name": "Onboarding",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/settings",
+          "name": "Settings",
+          "user": "Jawad Khan Hakim",
+          "role": "admin",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        }
+      ],
+      "consoleErrors": 0
+    },
+    {
+      "user": "John Sterling",
+      "email": "john@sterling.com",
+      "role": "client",
+      "company": "Sterling Capital Group",
+      "loginSuccess": true,
+      "routeResults": [
+        {
+          "route": "/dashboard",
+          "name": "Dashboard",
+          "user": "John Sterling",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/tasks",
+          "name": "Task Board",
+          "user": "John Sterling",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/tickets",
+          "name": "Support Tickets",
+          "user": "John Sterling",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/approvals",
+          "name": "Approvals",
+          "user": "John Sterling",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/change-requests",
+          "name": "Change Requests",
+          "user": "John Sterling",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/project",
+          "name": "Project Workspace",
+          "user": "John Sterling",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/billing",
+          "name": "Billing",
+          "user": "John Sterling",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/contracts",
+          "name": "Contracts",
+          "user": "John Sterling",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/files",
+          "name": "File Vault",
+          "user": "John Sterling",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/meetings",
+          "name": "Meetings",
+          "user": "John Sterling",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/messages",
+          "name": "Messages",
+          "user": "John Sterling",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/admin",
+          "name": "Admin Control Center",
+          "user": "John Sterling",
+          "role": "client",
+          "status": "redirected",
+          "redirectedTo": "/dashboard",
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/client-360",
+          "name": "Client 360",
+          "user": "John Sterling",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/credential-vault",
+          "name": "Credential Vault",
+          "user": "John Sterling",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/api-keys",
+          "name": "API Keys",
+          "user": "John Sterling",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/analytics",
+          "name": "Analytics",
+          "user": "John Sterling",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/feedback",
+          "name": "Feedback",
+          "user": "John Sterling",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/handover",
+          "name": "Handover",
+          "user": "John Sterling",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/knowledge-base",
+          "name": "Knowledge Base",
+          "user": "John Sterling",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/maintenance",
+          "name": "Maintenance",
+          "user": "John Sterling",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/onboarding",
+          "name": "Onboarding",
+          "user": "John Sterling",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/settings",
+          "name": "Settings",
+          "user": "John Sterling",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        }
+      ],
+      "consoleErrors": 0
+    },
+    {
+      "user": "Acme Client Profile",
+      "email": "client@acme.com",
+      "role": "client",
+      "company": "Acme Enterprises Inc.",
+      "loginSuccess": true,
+      "routeResults": [
+        {
+          "route": "/dashboard",
+          "name": "Dashboard",
+          "user": "Acme Client Profile",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/tasks",
+          "name": "Task Board",
+          "user": "Acme Client Profile",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/tickets",
+          "name": "Support Tickets",
+          "user": "Acme Client Profile",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/approvals",
+          "name": "Approvals",
+          "user": "Acme Client Profile",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/change-requests",
+          "name": "Change Requests",
+          "user": "Acme Client Profile",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/project",
+          "name": "Project Workspace",
+          "user": "Acme Client Profile",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/billing",
+          "name": "Billing",
+          "user": "Acme Client Profile",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/contracts",
+          "name": "Contracts",
+          "user": "Acme Client Profile",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/files",
+          "name": "File Vault",
+          "user": "Acme Client Profile",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/meetings",
+          "name": "Meetings",
+          "user": "Acme Client Profile",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/messages",
+          "name": "Messages",
+          "user": "Acme Client Profile",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/admin",
+          "name": "Admin Control Center",
+          "user": "Acme Client Profile",
+          "role": "client",
+          "status": "redirected",
+          "redirectedTo": "/dashboard",
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/client-360",
+          "name": "Client 360",
+          "user": "Acme Client Profile",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/credential-vault",
+          "name": "Credential Vault",
+          "user": "Acme Client Profile",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/api-keys",
+          "name": "API Keys",
+          "user": "Acme Client Profile",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/analytics",
+          "name": "Analytics",
+          "user": "Acme Client Profile",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/feedback",
+          "name": "Feedback",
+          "user": "Acme Client Profile",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/handover",
+          "name": "Handover",
+          "user": "Acme Client Profile",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/knowledge-base",
+          "name": "Knowledge Base",
+          "user": "Acme Client Profile",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/maintenance",
+          "name": "Maintenance",
+          "user": "Acme Client Profile",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/onboarding",
+          "name": "Onboarding",
+          "user": "Acme Client Profile",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        },
+        {
+          "route": "/settings",
+          "name": "Settings",
+          "user": "Acme Client Profile",
+          "role": "client",
+          "status": "pass",
+          "redirectedTo": null,
+          "actionButtonsFound": [],
+          "errors": []
+        }
+      ],
+      "consoleErrors": 0
+    }
+  ],
+  "rolesCoveredByMockUsers": [
+    "admin",
+    "client"
+  ],
+  "rolesMissingMockUsers": [
+    "client_user",
+    "client_admin",
+    "super_admin",
+    "project_manager",
+    "developer",
+    "designer",
+    "support_agent",
+    "finance",
+    "account_manager"
+  ],
+  "adminAccessTests": [
+    {
+      "user": "Shivam Dube",
+      "role": "admin",
+      "adminAccess": true,
+      "correct": true
+    },
+    {
+      "user": "Digvijay Kadam",
+      "role": "admin",
+      "adminAccess": true,
+      "correct": true
+    },
+    {
+      "user": "Jawad Khan Hakim",
+      "role": "admin",
+      "adminAccess": true,
+      "correct": true
+    },
+    {
+      "user": "Jawad Khan Hakim",
+      "role": "admin",
+      "adminAccess": true,
+      "correct": true
+    },
+    {
+      "user": "John Sterling",
+      "role": "client",
+      "adminAccess": false,
+      "correct": true
+    },
+    {
+      "user": "Acme Client Profile",
+      "role": "client",
+      "adminAccess": false,
+      "correct": true
+    }
+  ],
+  "actionButtonAudit": [],
+  "consoleErrors": [],
+  "summary": {}
+}
