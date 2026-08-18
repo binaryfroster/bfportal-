@@ -22,9 +22,9 @@ export default function MaintenancePage() {
       <div className="flex justify-between items-center pb-4 border-b border-border-custom/40">
         <div className="flex items-center gap-2">
           <Activity className="h-4.5 w-4.5 text-accent-primary" />
-          <span className="font-mono text-xs text-text-secondary uppercase tracking-widest">
+          <h1 className="font-mono text-xs text-text-secondary uppercase tracking-widest">
             // ENTERPRISE MAINTENANCE & SLA CARE CENTER
-          </span>
+          </h1>
         </div>
 
         <div className="flex items-center gap-3">

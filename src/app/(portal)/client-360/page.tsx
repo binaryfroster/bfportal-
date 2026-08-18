@@ -37,9 +37,9 @@ export default function Client360Page() {
       <div className="flex justify-between items-center pb-4 border-b border-border-custom/40">
         <div className="flex items-center gap-2">
           <Sparkles className="h-4.5 w-4.5 text-accent-primary" />
-          <span className="font-mono text-xs text-text-secondary uppercase tracking-widest">
+          <h1 className="font-mono text-xs text-text-secondary uppercase tracking-widest">
             // CLIENT 360° RELATIONSHIP MATRIX
-          </span>
+          </h1>
         </div>
         <div className="flex items-center gap-3">
           <Badge variant="cyan" className="font-mono text-[9px]">

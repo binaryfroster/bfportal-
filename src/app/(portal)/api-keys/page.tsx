@@ -75,9 +75,9 @@ export default function ApiKeysPage() {
       <div className="flex justify-between items-center pb-4 border-b border-border-custom/40">
         <div className="flex items-center gap-2">
           <Terminal className="h-4.5 w-4.5 text-accent-primary" />
-          <span className="font-mono text-xs text-text-secondary uppercase tracking-widest">
+          <h1 className="font-mono text-xs text-text-secondary uppercase tracking-widest">
             // DEVELOPER API KEYS & WEBHOOK MANAGEMENT
-          </span>
+          </h1>
         </div>
 
         <Button
