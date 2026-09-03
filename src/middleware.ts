@@ -58,20 +58,32 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Guard: Protect dashboard & settings & billing etc.
+  // Guard: Protect dashboard & all portal routes
   const protectedPrefixes = [
     "/dashboard",
+    "/activity",
+    "/client-360",
     "/project",
     "/tasks",
+    "/change-requests",
     "/files",
     "/approvals",
     "/billing",
     "/messages",
     "/meetings",
     "/tickets",
+    "/maintenance",
+    "/handover",
     "/contracts",
+    "/credential-vault",
+    "/analytics",
+    "/knowledge-base",
+    "/api-keys",
+    "/feedback",
+    "/integrations",
     "/settings",
     "/onboarding",
+    "/admin",
   ];
 
   const isProtected = protectedPrefixes.some((prefix) => pathname.startsWith(prefix));

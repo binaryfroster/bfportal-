@@ -9,6 +9,7 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
     | "error"
     | "info"
     | "cyan"
+    | "accent"
     | "outline";
 }
 
@@ -26,7 +27,7 @@ function Badge({ className, variant = "default", ...props }: BadgeProps) {
           "bg-brand-error/10 text-brand-error border border-brand-error/20":
             variant === "error",
           "bg-accent-primary/10 text-accent-primary border border-accent-primary/20 shadow-glow":
-            variant === "cyan",
+            variant === "cyan" || variant === "accent",
           "bg-blue-500/10 text-blue-400 border border-blue-500/20": variant === "info",
           "border border-border-custom text-text-secondary bg-transparent":
             variant === "outline",

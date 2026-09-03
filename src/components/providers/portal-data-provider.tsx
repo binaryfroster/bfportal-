@@ -150,6 +150,9 @@ import {
   ApiKeyItem,
   IntegrationStatus,
   Notification,
+  KnowledgeArticle,
+  ClientNote,
+  AdminClientProject,
 } from "@/src/types";
 
 interface PortalDataContextType {
@@ -176,6 +179,22 @@ interface PortalDataContextType {
   notifications: Notification[];
   integrations: IntegrationStatus[];
   apiKeys: ApiKeyItem[];
+  knowledgeArticles: KnowledgeArticle[];
+  clientNotes: ClientNote[];
+  adminProjects: AdminClientProject[];
+
+  // Admin Project Management Mutations
+  createAdminProject: (project: Omit<AdminClientProject, "id" | "createdAt">) => void;
+  updateAdminProject: (id: string, updates: Partial<AdminClientProject>) => void;
+  deleteAdminProject: (id: string) => void;
+  switchActiveProject: (projectId: string) => void;
+
+  // Audit Log Mutation
+  addAuditLog: (entry: Omit<AuditLogEntry, "id" | "timestamp">) => void;
+  addKnowledgeArticle: (article: Omit<KnowledgeArticle, "id" | "lastUpdated">) => void;
+  addClientNote: (note: Omit<ClientNote, "id" | "createdAt">) => void;
+  deleteClientNote: (id: string) => void;
+
 
   // Mutations
   signContract: (contractId: string, legalName: string) => void;
@@ -477,10 +496,322 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
     },
   ]);
 
-  const [auditLogs] = React.useState<AuditLogEntry[]>([
-    { id: "al-1", actorName: "John Sterling", actorRole: "client_admin", action: "LOGIN", resource: "AUTH_GATE", result: "SUCCESS", ipAddress: "192.168.1.15", timestamp: new Date().toISOString() },
+  const [auditLogs, setAuditLogs] = React.useState<AuditLogEntry[]>([
+    { id: "al-1", actorName: "John Sterling", actorRole: "client_admin", action: "LOGIN_SESSION", resource: "AUTH_GATEWAY", result: "SUCCESS", ipAddress: "192.168.1.15", timestamp: new Date().toISOString() },
     { id: "al-2", actorName: "Shivam Dube", actorRole: "admin", action: "DEPLOY_MILESTONE", resource: "BUILD_ENGINE", result: "SUCCESS", ipAddress: "10.0.4.12", timestamp: new Date(Date.now() - 3600000).toISOString() },
+    { id: "al-3", actorName: "Digvijay Kadam", actorRole: "admin", action: "APPROVE_DESIGN_SPEC", resource: "DELIVERABLE_VAULT", result: "SUCCESS", ipAddress: "10.0.4.15", timestamp: new Date(Date.now() - 7200000).toISOString() },
+    { id: "al-4", actorName: "John Sterling", actorRole: "client_admin", action: "EXECUTE_CONTRACT", resource: "MSA_AGREEMENT_2026", result: "SUCCESS", ipAddress: "192.168.1.15", timestamp: new Date(Date.now() - 86400000).toISOString() },
+    { id: "al-5", actorName: "Jawad Khan Hakim", actorRole: "admin", action: "EMERGENCY_PATCH", resource: "API_GATEWAY_V2", result: "SUCCESS", ipAddress: "10.0.4.8", timestamp: new Date(Date.now() - 172800000).toISOString() },
   ]);
+
+  const [knowledgeArticles, setKnowledgeArticles] = React.useState<KnowledgeArticle[]>([
+    {
+      id: "kb-1",
+      title: "How to Approve Deliverables & Request Revisions",
+      category: "Portal Basics",
+      readTime: "3 min",
+      summary: "Step-by-step instructions on inspecting deliverables, signing off, or submitting structured section feedback.",
+      content: `## Deliverable Review Protocol\n\nWhen a milestone phase concludes, our engineering team uploads high-resolution design files, architecture schemas, or build artifacts for formal client sign-off.\n\n### How to Inspect:\n1. Navigate to **Approvals** from the sidebar.\n2. Click any pending deliverable card to preview the PDF/specification.\n3. Click **[✓ APPROVE]** to formally accept the milestone.\n4. Click **[✎ REQUEST REVISIONS]** to submit priority-tagged feedback.\n\n> Note: Approvals automatically generate an immutable audit log timestamp.`,
+      tags: ["Approvals", "Workflow", "Sign-off"],
+      lastUpdated: "2026-07-01",
+      author: "Binary Froster QA Team",
+    },
+    {
+      id: "kb-2",
+      title: "Stripe & Razorpay Payment Methods Guide",
+      category: "Billing",
+      readTime: "4 min",
+      summary: "Understand how multi-currency invoice payments, Razorpay UPI, and international wire settlements work.",
+      content: `## Payment & Treasury Operations\n\nBinary Froster supports instantaneous digital settlement via Stripe (USD/EUR/GBP) and Razorpay (INR/UPI/NetBanking).\n\n### Settlement Options:\n- **Instant Checkout**: Click [PAY NOW] on any invoice to launch the Razorpay / Stripe modal.\n- **PDF Tax Invoices**: Download GST/VAT-compliant receipts immediately upon settlement.\n- **Wire Transfer**: Use our verified SWIFT/IBAN details for corporate treasury transfers.`,
+      tags: ["Billing", "Stripe", "Razorpay", "Invoices"],
+      lastUpdated: "2026-07-02",
+      author: "Finance Operations",
+    },
+    {
+      id: "kb-3",
+      title: "Submitting High-Priority SLA Incident Tickets",
+      category: "Support",
+      readTime: "2 min",
+      summary: "Guidelines on incident triage, P1 critical escalations, and 1-hour SLA response guarantees.",
+      content: `## Incident Escalation Matrix\n\n- **P1 Critical**: Production outage or blocking defect. SLA response: < 1 Hour.\n- **P2 High**: Significant performance degradation. SLA response: < 4 Hours.\n- **P3 Medium**: Non-blocking bug or cosmetic defect. SLA response: < 8 Hours.\n- **P4 Low**: General inquiry or documentation query. SLA response: < 24 Hours.`,
+      tags: ["Support", "SLA", "Tickets", "Triage"],
+      lastUpdated: "2026-07-03",
+      author: "Site Reliability Team",
+    },
+    {
+      id: "kb-4",
+      title: "API Authentication & Security Standards",
+      category: "Developer Docs",
+      readTime: "5 min",
+      summary: "Developer guide on using Bearer API keys, rotating secrets, and securing ingress endpoints.",
+      content: `## Developer Integration Guide\n\nAll Binary Froster API endpoints require an active Bearer token in the \`Authorization\` header:\n\n\`\`\`bash\ncurl -X GET https://api.binaryfroster.com/v1/projects \\\n  -H "Authorization: Bearer bf_live_xxx" \\\n  -H "Content-Type: application/json"\n\`\`\`\n\nKeys can be rotated with zero downtime in the **API & Webhooks** console.`,
+      tags: ["API", "Security", "Developers"],
+      lastUpdated: "2026-07-04",
+      author: "Platform Engineering",
+    },
+    {
+      id: "kb-5",
+      title: "Understanding the 6-Phase Project Lifecycle Stepper",
+      category: "Project Tracking",
+      readTime: "5 min",
+      summary: "An overview of Discover, Design, Build, Test, Launch, and Support development stages.",
+      content: `## The 6-Phase Engineering Pipeline\n\n1. **Discover**: Architecture discovery, requirements gathering, and technical scope signoff.\n2. **Design**: Wireframing, UX journeys, design tokens, and clickable prototypes.\n3. **Build**: Core engineering, database migrations, API development, and frontend assembly.\n4. **Test**: End-to-end integration tests, load testing, security audits, and penetration tests.\n5. **Launch**: Production infrastructure rollout, DNS propagation, and go-live deployment.\n6. **Support**: 24/7 SLA maintenance, uptime monitoring, and continuous improvements.`,
+      tags: ["Lifecycle", "Milestones", "Agile"],
+      lastUpdated: "2026-07-05",
+      author: "Lead Project Manager",
+    },
+  ]);
+
+  const [clientNotes, setClientNotes] = React.useState<ClientNote[]>([
+    {
+      id: "cn-1",
+      authorName: "Shivam Dube",
+      authorRole: "Super Admin",
+      tag: "Important",
+      content: "Client prefers weekly milestone demo calls on Thursdays at 3:00 PM EST. Ensure all staging builds are deployed by Wednesday evening.",
+      createdAt: "2026-07-01T14:30:00Z",
+    },
+    {
+      id: "cn-2",
+      authorName: "Digvijay Kadam",
+      authorRole: "Admin",
+      tag: "Technical",
+      content: "Production deployment target is AWS us-east-1 with Cloudflare CDN fronting. Staging environment deployed on Vercel Enterprise.",
+      createdAt: "2026-07-03T10:15:00Z",
+    },
+  ]);
+
+  const addAuditLog = (entry: Omit<AuditLogEntry, "id" | "timestamp">) => {
+    const newEntry: AuditLogEntry = {
+      ...entry,
+      id: `al-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      timestamp: new Date().toISOString(),
+    };
+    setAuditLogs((prev) => [newEntry, ...prev]);
+  };
+
+  const addKnowledgeArticle = (article: Omit<KnowledgeArticle, "id" | "lastUpdated">) => {
+    const newArticle: KnowledgeArticle = {
+      ...article,
+      id: `kb-${Date.now()}`,
+      lastUpdated: new Date().toISOString().split("T")[0],
+    };
+    setKnowledgeArticles((prev) => [newArticle, ...prev]);
+    addAuditLog({
+      actorName: user?.name || "Team Member",
+      actorRole: user?.role || "admin",
+      action: "CREATE_KB_ARTICLE",
+      resource: article.title,
+      result: "SUCCESS",
+    });
+  };
+
+  const addClientNote = (note: Omit<ClientNote, "id" | "createdAt">) => {
+    const newNote: ClientNote = {
+      ...note,
+      id: `cn-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    };
+    setClientNotes((prev) => [newNote, ...prev]);
+    addAuditLog({
+      actorName: user?.name || "Team Member",
+      actorRole: user?.role || "admin",
+      action: "ADD_CLIENT_NOTE",
+      resource: `Tag: ${note.tag}`,
+      result: "SUCCESS",
+    });
+  };
+
+  const [adminProjects, setAdminProjects] = React.useState<AdminClientProject[]>([
+    {
+      id: "project-swap",
+      name: "Sterling Wealth Algorithmic Platform (SWAP)",
+      clientId: "client-john",
+      clientName: "John Sterling",
+      companyName: "Sterling Capital Group",
+      clientEmail: "john@sterling.com",
+      organizationId: "org-sterling",
+      phase: "Build",
+      progress: 68,
+      upcomingMilestoneName: "Beta Core Ledger Engine Deployment",
+      upcomingMilestoneDate: "2026-07-15",
+      budget: 120000,
+      spent: 70000,
+      startDate: "2026-04-01",
+      targetEndDate: "2026-09-30",
+      status: "Active",
+      description: "Next-generation algorithmic asset management and automated high-frequency order book matching platform.",
+      leadEngineer: "Shivam Dube",
+      projectManager: "Digvijay Kadam",
+      designer: "Jawad Khan Hakim",
+      repositoryUrl: "https://github.com/binaryfroster/swap-engine",
+      stagingUrl: "https://swap-staging.binaryfroster.io",
+      productionUrl: "https://swap.sterlingwealth.com",
+      techStack: ["Next.js 15", "Rust", "PostgreSQL", "Docker", "AWS us-east-1"],
+      createdAt: "2026-04-01T08:00:00Z",
+    },
+    {
+      id: "project-acme",
+      name: "Acme Enterprise AI Logistics System",
+      clientId: "client-acme",
+      clientName: "Sarah Jenkins",
+      companyName: "Acme Enterprises Inc.",
+      clientEmail: "client@acme.com",
+      organizationId: "org-acme",
+      phase: "Design",
+      progress: 35,
+      upcomingMilestoneName: "Figma High Fidelity Interface Review",
+      upcomingMilestoneDate: "2026-07-05",
+      budget: 85000,
+      spent: 28000,
+      startDate: "2026-05-10",
+      targetEndDate: "2026-11-15",
+      status: "Active",
+      description: "AI-powered fleet dispatch optimization, multi-modal routing engine, and telematics ingestion hub.",
+      leadEngineer: "Jawad Khan Hakim",
+      projectManager: "Shivam Dube",
+      designer: "Digvijay Kadam",
+      repositoryUrl: "https://github.com/binaryfroster/acme-logistics",
+      stagingUrl: "https://acme-staging.binaryfroster.io",
+      productionUrl: "https://logistics.acme.com",
+      techStack: ["React 19", "Python / FastAPI", "Kafka", "PostGIS", "GCP"],
+      createdAt: "2026-05-10T10:00:00Z",
+    },
+    {
+      id: "project-apex",
+      name: "Apex Autonomous Voice Agent Engine",
+      clientId: "client-apex",
+      clientName: "Marcus Vance",
+      companyName: "Apex Digital Media",
+      clientEmail: "marcus@apexdigital.com",
+      organizationId: "org-apex",
+      phase: "Test",
+      progress: 88,
+      upcomingMilestoneName: "Latency Load Test & Whisper V3 Benchmark",
+      upcomingMilestoneDate: "2026-07-20",
+      budget: 95000,
+      spent: 82000,
+      startDate: "2026-03-15",
+      targetEndDate: "2026-08-01",
+      status: "Launching",
+      description: "Sub-200ms conversational voice agents with streaming audio synthesis and contextual memory RAG pipeline.",
+      leadEngineer: "Shivam Dube",
+      projectManager: "Jawad Khan Hakim",
+      designer: "Digvijay Kadam",
+      repositoryUrl: "https://github.com/binaryfroster/apex-voice-ai",
+      stagingUrl: "https://apex-staging.binaryfroster.io",
+      productionUrl: "https://voice.apexdigital.com",
+      techStack: ["WebSockets", "Go", "PyTorch", "Redis", "Cloudflare Workers"],
+      createdAt: "2026-03-15T09:30:00Z",
+    },
+    {
+      id: "project-quantum",
+      name: "Quantum Ledger Institutional Custody Vault",
+      clientId: "client-quantum",
+      clientName: "Elena Rostova",
+      companyName: "Quantum Capital Zurich",
+      clientEmail: "elena@quantumcapital.ch",
+      organizationId: "org-quantum",
+      phase: "Discover",
+      progress: 18,
+      upcomingMilestoneName: "Cryptographic Consensus Specification Sign-off",
+      upcomingMilestoneDate: "2026-07-30",
+      budget: 150000,
+      spent: 25000,
+      startDate: "2026-06-01",
+      targetEndDate: "2026-12-31",
+      status: "In Review",
+      description: "Multi-party computation (MPC) cold storage vault with automated multisig compliance and audit trails.",
+      leadEngineer: "Digvijay Kadam",
+      projectManager: "Shivam Dube",
+      designer: "Jawad Khan Hakim",
+      repositoryUrl: "https://github.com/binaryfroster/quantum-mpc-vault",
+      stagingUrl: "https://quantum-staging.binaryfroster.io",
+      productionUrl: "https://vault.quantumcapital.ch",
+      techStack: ["Solidity", "TypeScript", "Ethers.js", "Triton", "AWS Nitro Enclaves"],
+      createdAt: "2026-06-01T11:00:00Z",
+    },
+  ]);
+
+  const createAdminProject = (newProj: Omit<AdminClientProject, "id" | "createdAt">) => {
+    const created: AdminClientProject = {
+      ...newProj,
+      id: `project-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    };
+    setAdminProjects((prev) => [created, ...prev]);
+    addAuditLog({
+      actorName: user?.name || "Admin",
+      actorRole: user?.role || "admin",
+      action: "PROVISION_CLIENT_PROJECT",
+      resource: `${created.name} (${created.companyName})`,
+      result: "SUCCESS",
+    });
+  };
+
+  const updateAdminProject = (id: string, updates: Partial<AdminClientProject>) => {
+    setAdminProjects((prev) =>
+      prev.map((p) => {
+        if (p.id === id) {
+          const updated = { ...p, ...updates };
+          if (project && project.id === id) {
+            setProject({
+              id: updated.id,
+              name: updated.name,
+              phase: updated.phase,
+              progress: updated.progress,
+              upcomingMilestoneName: updated.upcomingMilestoneName,
+              upcomingMilestoneDate: updated.upcomingMilestoneDate,
+            });
+          }
+          return updated;
+        }
+        return p;
+      })
+    );
+    addAuditLog({
+      actorName: user?.name || "Admin",
+      actorRole: user?.role || "admin",
+      action: "UPDATE_CLIENT_PROJECT",
+      resource: `Project ID: ${id}`,
+      result: "SUCCESS",
+    });
+  };
+
+  const deleteAdminProject = (id: string) => {
+    setAdminProjects((prev) => prev.filter((p) => p.id !== id));
+    addAuditLog({
+      actorName: user?.name || "Admin",
+      actorRole: user?.role || "admin",
+      action: "DELETE_CLIENT_PROJECT",
+      resource: `Project ID: ${id}`,
+      result: "SUCCESS",
+    });
+  };
+
+  const switchActiveProject = (projectId: string) => {
+    const target = adminProjects.find((p) => p.id === projectId);
+    if (!target) return;
+    setProject({
+      id: target.id,
+      name: target.name,
+      phase: target.phase,
+      progress: target.progress,
+      upcomingMilestoneName: target.upcomingMilestoneName,
+      upcomingMilestoneDate: target.upcomingMilestoneDate,
+    });
+    addAuditLog({
+      actorName: user?.name || "Admin",
+      actorRole: user?.role || "admin",
+      action: "SWITCH_PORTAL_PROJECT_CONTEXT",
+      resource: `${target.name} (${target.companyName})`,
+      result: "SUCCESS",
+    });
+  };
+
+  const deleteClientNote = (id: string) => {
+    setClientNotes((prev) => prev.filter((n) => n.id !== id));
+  };
 
   const [notifications, setNotifications] = React.useState<Notification[]>([
     { id: "n-1", userId: "client-john", title: "Milestone Completed", description: "Design: Wireframes & High-Fidelity Prototypes sealed.", timestamp: "2026-06-28T10:00:00Z", link: "/project", isRead: false, type: "milestone" },
@@ -506,6 +837,13 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
       createdAt: new Date().toISOString(),
     };
     setChangeRequests((prev) => [newCr, ...prev]);
+    addAuditLog({
+      actorName: user?.name || "Client",
+      actorRole: user?.role || "client",
+      action: "SUBMIT_CHANGE_REQUEST",
+      resource: cr.title,
+      result: "SUCCESS",
+    });
   };
 
   const signoffHandover = (name: string) => {
@@ -515,6 +853,13 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
       clientSignoffName: name,
       signoffTimestamp: new Date().toISOString(),
     }));
+    addAuditLog({
+      actorName: name,
+      actorRole: user?.role || "client",
+      action: "SIGNOFF_PROJECT_HANDOVER",
+      resource: "PRODUCTION_RELEASE",
+      result: "SUCCESS",
+    });
   };
 
   const addCredential = (item: Omit<CredentialVaultItem, "id" | "lastRotatedAt">) => {
@@ -524,17 +869,39 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
       lastRotatedAt: new Date().toISOString(),
     };
     setCredentialVault((prev) => [...prev, newItem]);
+    addAuditLog({
+      actorName: user?.name || "Administrator",
+      actorRole: user?.role || "admin",
+      action: "ADD_VAULT_CREDENTIAL",
+      resource: item.serviceName,
+      result: "SUCCESS",
+    });
   };
 
   const updateCredential = (id: string, updates: Partial<Omit<CredentialVaultItem, "id" | "lastRotatedAt">>) => {
     setCredentialVault((prev) =>
-      prev.map((cred) => (cred.id === id ? { ...cred, ...updates } : cred))
+      prev.map((cred) => (cred.id === id ? { ...cred, ...updates, lastRotatedAt: new Date().toISOString() } : cred))
     );
+    addAuditLog({
+      actorName: user?.name || "Administrator",
+      actorRole: user?.role || "admin",
+      action: "ROTATE_VAULT_CREDENTIAL",
+      resource: `Credential ID: ${id}`,
+      result: "SUCCESS",
+    });
   };
 
   const deleteCredential = (id: string) => {
     setCredentialVault((prev) => prev.filter((cred) => cred.id !== id));
+    addAuditLog({
+      actorName: user?.name || "Administrator",
+      actorRole: user?.role || "admin",
+      action: "DELETE_VAULT_CREDENTIAL",
+      resource: `Credential ID: ${id}`,
+      result: "SUCCESS",
+    });
   };
+
 
   const submitFeedback = (item: Omit<NPSFeedback, "id" | "createdAt">) => {
     const newFb: NPSFeedback = {
@@ -667,6 +1034,13 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
           : c
       )
     );
+    addAuditLog({
+      actorName: legalName,
+      actorRole: user?.role || "client",
+      action: "EXECUTE_CONTRACT",
+      resource: `Contract ID: ${contractId}`,
+      result: "SUCCESS",
+    });
   };
 
   const payInvoice = (invoiceId: string) => {
@@ -675,23 +1049,51 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
         inv.id === invoiceId ? { ...inv, status: "Paid" as const, paidAt: new Date().toISOString() } : inv
       )
     );
+    addAuditLog({
+      actorName: user?.name || "Client",
+      actorRole: user?.role || "client",
+      action: "SETTLE_INVOICE",
+      resource: `Invoice ID: ${invoiceId}`,
+      result: "SUCCESS",
+    });
   };
 
   const createTicket = (ticket: Omit<SupportTicket, "id" | "replies">) => {
     const newTicket: SupportTicket = { ...ticket, id: `t-${Date.now()}`, replies: [] };
     setTickets((prev) => [newTicket, ...prev]);
+    addAuditLog({
+      actorName: ticket.clientName || user?.name || "Client",
+      actorRole: user?.role || "client",
+      action: "CREATE_SUPPORT_TICKET",
+      resource: ticket.title,
+      result: "SUCCESS",
+    });
   };
 
   const replyToTicket = (ticketId: string, reply: Reply) => {
     setTickets((prev) =>
       prev.map((t) => (t.id === ticketId ? { ...t, replies: [...t.replies, reply] } : t))
     );
+    addAuditLog({
+      actorName: reply.senderName,
+      actorRole: reply.senderRole,
+      action: "REPLY_SUPPORT_TICKET",
+      resource: `Ticket ID: ${ticketId}`,
+      result: "SUCCESS",
+    });
   };
 
   const resolveTicket = (ticketId: string) => {
     setTickets((prev) =>
       prev.map((t) => (t.id === ticketId ? { ...t, status: "Resolved" as const } : t))
     );
+    addAuditLog({
+      actorName: user?.name || "Engineer",
+      actorRole: user?.role || "admin",
+      action: "RESOLVE_SUPPORT_TICKET",
+      resource: `Ticket ID: ${ticketId}`,
+      result: "SUCCESS",
+    });
   };
 
   const sendMessage = (message: Message) => {
@@ -700,6 +1102,13 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
 
   const bookMeeting = (meeting: Meeting) => {
     setMeetings((prev) => [...prev, meeting]);
+    addAuditLog({
+      actorName: user?.name || "Client",
+      actorRole: user?.role || "client",
+      action: "SCHEDULE_MEETING",
+      resource: meeting.agenda || "Engineering Sync",
+      result: "SUCCESS",
+    });
   };
 
   const updateMeeting = (id: string, updates: Partial<Meeting>) => {
@@ -724,6 +1133,13 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
           : d
       )
     );
+    addAuditLog({
+      actorName: userName,
+      actorRole: user?.role || "client",
+      action: "APPROVE_DELIVERABLE",
+      resource: `Deliverable ID: ${id}`,
+      result: "SUCCESS",
+    });
   };
 
   const requestChanges = (id: string, userName: string, feedback: ApprovalDeliverable["feedback"]) => {
@@ -741,26 +1157,61 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
           : d
       )
     );
+    addAuditLog({
+      actorName: userName,
+      actorRole: user?.role || "client",
+      action: "REQUEST_DELIVERABLE_REVISION",
+      resource: `Deliverable ID: ${id}`,
+      result: "SUCCESS",
+    });
   };
 
   const submitTaskFeedback = (taskId: string, feedback: { text: string; priority: string; date: string }) => {
     setTasks((prev) =>
       prev.map((t) => (t.id === taskId ? { ...t, feedback, column: "In Progress" as const } : t))
     );
+    addAuditLog({
+      actorName: user?.name || "Client",
+      actorRole: user?.role || "client",
+      action: "SUBMIT_TASK_FEEDBACK",
+      resource: `Task ID: ${taskId}`,
+      result: "SUCCESS",
+    });
   };
 
   const moveTask = (taskId: string, column: Task["column"]) => {
     setTasks((prev) =>
       prev.map((t) => (t.id === taskId ? { ...t, column } : t))
     );
+    addAuditLog({
+      actorName: user?.name || "User",
+      actorRole: user?.role || "client",
+      action: "TRANSITION_TASK_COLUMN",
+      resource: `Task ID: ${taskId} -> ${column}`,
+      result: "SUCCESS",
+    });
   };
 
   const uploadFile = (file: FileDoc) => {
     setFiles((prev) => [...prev, file]);
+    addAuditLog({
+      actorName: file.uploadedByName || user?.name || "User",
+      actorRole: user?.role || "client",
+      action: "UPLOAD_PROJECT_FILE",
+      resource: file.name,
+      result: "SUCCESS",
+    });
   };
 
   const createInvoice = (invoice: Invoice) => {
     setInvoices((prev) => [...prev, invoice]);
+    addAuditLog({
+      actorName: user?.name || "Finance Admin",
+      actorRole: user?.role || "admin",
+      action: "ISSUE_TAX_INVOICE",
+      resource: invoice.invoiceNumber,
+      result: "SUCCESS",
+    });
   };
 
   const updateInvoice = (id: string, updates: Partial<Invoice>) => {
@@ -775,12 +1226,26 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
 
   const createMilestone = (milestone: Milestone) => {
     setMilestones((prev) => [...prev, milestone]);
+    addAuditLog({
+      actorName: user?.name || "Lead Engineer",
+      actorRole: user?.role || "admin",
+      action: "PROVISION_MILESTONE",
+      resource: milestone.title,
+      result: "SUCCESS",
+    });
   };
 
   const updateTicketStatus = (ticketId: string, status: SupportTicket["status"]) => {
     setTickets((prev) =>
       prev.map((t) => (t.id === ticketId ? { ...t, status } : t))
     );
+    addAuditLog({
+      actorName: user?.name || "Support",
+      actorRole: user?.role || "admin",
+      action: "UPDATE_TICKET_STATUS",
+      resource: `Ticket ID: ${ticketId} -> ${status}`,
+      result: "SUCCESS",
+    });
   };
 
   const updateTask = (taskId: string, updates: Partial<Task>) => {
@@ -815,6 +1280,13 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
 
   const deleteFile = (id: string) => {
     setFiles((prev) => prev.filter((f) => f.id !== id));
+    addAuditLog({
+      actorName: user?.name || "User",
+      actorRole: user?.role || "client",
+      action: "DELETE_PROJECT_FILE",
+      resource: `File ID: ${id}`,
+      result: "SUCCESS",
+    });
   };
 
   const updateFile = (id: string, updates: Partial<FileDoc>) => {
@@ -847,6 +1319,17 @@ export function PortalDataProvider({ children }: { children: React.ReactNode }) 
         notifications,
         integrations,
         apiKeys,
+        knowledgeArticles,
+        clientNotes,
+        adminProjects,
+        createAdminProject,
+        updateAdminProject,
+        deleteAdminProject,
+        switchActiveProject,
+        addAuditLog,
+        addKnowledgeArticle,
+        addClientNote,
+        deleteClientNote,
         signContract,
         payInvoice,
         createTicket,

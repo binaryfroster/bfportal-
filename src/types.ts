@@ -60,6 +60,36 @@ export interface Project {
   createdAt: string;
 }
 
+export type ProjectStatus = 'Active' | 'In Review' | 'Launching' | 'On Hold' | 'Completed' | 'Archived';
+
+export interface AdminClientProject {
+  id: string;
+  name: string;
+  clientId: string;
+  clientName: string;
+  companyName: string;
+  clientEmail: string;
+  organizationId?: string;
+  phase: ProjectPhase;
+  progress: number; // 0 - 100
+  upcomingMilestoneName: string;
+  upcomingMilestoneDate: string;
+  budget: number;
+  spent: number;
+  startDate: string;
+  targetEndDate: string;
+  status: ProjectStatus;
+  description: string;
+  leadEngineer: string;
+  projectManager: string;
+  designer?: string;
+  repositoryUrl?: string;
+  stagingUrl?: string;
+  productionUrl?: string;
+  techStack: string[];
+  createdAt: string;
+}
+
 export type MilestoneStatus = 'Upcoming' | 'In Progress' | 'Completed' | 'Delayed';
 
 export interface Milestone {
@@ -343,3 +373,98 @@ export interface IntegrationStatus {
   status: 'Connected' | 'Not Connected' | 'Degraded';
   lastSyncAt?: string;
 }
+
+export interface KnowledgeArticle {
+  id: string;
+  title: string;
+  category: string;
+  readTime: string;
+  summary: string;
+  content: string;
+  tags: string[];
+  lastUpdated: string;
+  author: string;
+}
+
+export interface ClientNote {
+  id: string;
+  authorName: string;
+  authorRole: string;
+  tag: 'Important' | 'Billing' | 'Technical' | 'Relationship';
+  content: string;
+  createdAt: string;
+}
+
+// ──────────────────────────────────────────────
+// AI Proposal Generator Types
+// ──────────────────────────────────────────────
+
+export type ProposalStatus = 'Draft' | 'Generated' | 'Editing' | 'Finalized' | 'Sent' | 'Accepted' | 'Declined';
+export type ProposalCurrency = 'USD' | 'GBP' | 'INR';
+
+export interface ProposalScopeSection {
+  title: string;
+  description: string;
+  included: boolean;
+}
+
+export interface ProposalPhase {
+  name: string;
+  duration: string;
+  startWeek: number;
+  endWeek: number;
+  milestones: string[];
+  cost: number;
+}
+
+export interface ProposalCostLineItem {
+  id: string;
+  category: string;
+  description: string;
+  hours: number;
+  rate: number;
+  amount: number;
+}
+
+export interface ProposalDeliverable {
+  name: string;
+  description: string;
+  phase: string;
+}
+
+export interface Proposal {
+  id: string;
+  projectId?: string;
+  clientName: string;
+  clientEmail?: string;
+  projectTitle: string;
+  projectType: string;
+  briefDescription: string;
+  currency: ProposalCurrency;
+
+  // AI-Generated Content (all editable)
+  executiveSummary: string;
+  scopeOfWork: ProposalScopeSection[];
+  phases: ProposalPhase[];
+  costBreakdown: ProposalCostLineItem[];
+  deliverables: ProposalDeliverable[];
+  techStackRecommendation: string;
+  assumptions: string[];
+  termsAndConditions: string;
+
+  // Calculated Totals (editable overrides)
+  subtotal: number;
+  taxRate: number;
+  taxAmount: number;
+  discount: number;
+  grandTotal: number;
+
+  // Metadata
+  status: ProposalStatus;
+  proposalNumber: string;
+  validUntil: string;
+  createdAt: string;
+  updatedAt: string;
+  createdByName: string;
+}
+

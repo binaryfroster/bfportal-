@@ -1,14 +1,18 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "@/src/components/providers/auth-provider";
 import "@/src/app/globals.css";
+
+export const viewport: Viewport = {
+  themeColor: "#00F2FE",
+  colorScheme: "dark",
+};
 
 export const metadata: Metadata = {
   title: "Binary Froster | Client Portal & App",
   description:
     "Enterprise-grade delivery platform, AI systems command center, and native mobile/web app for Binary Froster software services.",
   manifest: "/manifest.json",
-  themeColor: "#00F2FE",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

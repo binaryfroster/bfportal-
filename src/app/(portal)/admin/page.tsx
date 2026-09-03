@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import {
   Terminal,
   Shield,
@@ -19,6 +20,8 @@ import {
   Eye,
   EyeOff,
   Copy,
+  FolderKanban,
+  ArrowRight,
 } from "lucide-react";
 import { useUser } from "@/src/components/providers/auth-provider";
 import { usePortalData } from "@/src/components/providers/portal-data-provider";
@@ -174,6 +177,29 @@ export default function AdminPanelPage() {
 
   return (
     <div className="space-y-6">
+      {/* Top Header & Navigation Banner */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-border-custom/50">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Shield className="h-4.5 w-4.5 text-accent-primary" />
+            <h1 className="font-mono text-xs text-text-secondary uppercase tracking-widest">
+              // ADMIN OPERATIONS & SYSTEM CONTROLS
+            </h1>
+          </div>
+          <p className="text-xs font-mono text-text-muted">
+            Global governance: Deliverable signoffs, treasury overrides, and email telemetry
+          </p>
+        </div>
+
+        <Link
+          href="/admin/projects"
+          className="text-xs font-mono font-bold px-3.5 py-2 rounded transition-all flex items-center gap-2 cursor-pointer bg-accent-primary/10 hover:bg-accent-primary/25 text-accent-primary border border-accent-primary/30 shadow-glow"
+        >
+          <FolderKanban className="w-4 h-4" />
+          MANAGE CLIENT PROJECTS PANEL &rarr;
+        </Link>
+      </div>
+
       {/* Tabs */}
       <div className="flex flex-wrap gap-1.5 p-1 bg-bg-card border border-border-custom rounded-input text-white">
         {(["approvals", "billing", "milestones", "tickets", "emails"] as const).map((tab) => (

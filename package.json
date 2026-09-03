@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test:core": "tsx tests/core_suite.test.ts",
+    "test:core": "tsx tests/core_suite.test.ts && tsx tests/admin_projects.test.ts && tsx tests/proposals.test.ts",
     "test:personality": "node tests/personality_deep_test.js",
     "test:e2e": "node tests/master_deep_test_suite.js",
     "test": "npm run typecheck && npm run test:core"

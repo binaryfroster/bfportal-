@@ -29,7 +29,9 @@ import {
   Terminal,
   MessageCircleQuestion,
   Download,
-  Users
+  Users,
+  FolderKanban,
+  FileText
 } from "lucide-react";
 import { useUser } from "@/src/components/providers/auth-provider";
 import { cn } from "@/src/lib/utils";
@@ -47,6 +49,7 @@ export function Sidebar({ className, isOpen, setIsOpen, onOpenDownloadModal }: S
 
   const navigationItems = [
     { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard, roles: ["client", "admin", "client_admin", "client_user", "super_admin"] },
+    { label: "Activity Log", path: "/activity", icon: Activity, roles: ["client", "admin", "client_admin", "client_user", "super_admin"] },
     { label: "Client 360° Hub", path: "/client-360", icon: Sparkles, roles: ["client", "admin", "client_admin", "super_admin", "account_manager"] },
     { label: "Project Workspace", path: "/project", icon: Calendar, roles: ["client", "admin", "client_admin", "client_user", "super_admin"] },
     { label: "Kanban Board", path: "/tasks", icon: Kanban, roles: ["client", "admin", "client_admin", "client_user", "super_admin"] },
@@ -54,6 +57,7 @@ export function Sidebar({ className, isOpen, setIsOpen, onOpenDownloadModal }: S
     { label: "Files & Vault", path: "/files", icon: FolderOpen, roles: ["client", "admin", "client_admin", "client_user", "super_admin"] },
     { label: "Approvals", path: "/approvals", icon: FileCheck2, roles: ["client", "admin", "client_admin", "super_admin"] },
     { label: "Billing & Revenue", path: "/billing", icon: CreditCard, roles: ["client", "admin", "client_admin", "super_admin", "finance"] },
+    { label: "Proposals", path: "/proposals", icon: FileText, roles: ["admin", "super_admin", "project_manager", "account_manager"] },
     { label: "Meetings", path: "/meetings", icon: Video, roles: ["client", "admin", "client_admin", "client_user", "super_admin"] },
     { label: "Support & Tickets", path: "/tickets", icon: HelpCircle, roles: ["client", "admin", "client_admin", "client_user", "super_admin", "support_agent"] },
     { label: "SLA Maintenance", path: "/maintenance", icon: Activity, roles: ["client", "admin", "client_admin", "super_admin"] },
@@ -62,13 +66,15 @@ export function Sidebar({ className, isOpen, setIsOpen, onOpenDownloadModal }: S
     { label: "Credentials", path: "/credential-vault", icon: KeyRound, roles: ["client", "admin", "client_admin", "super_admin"] },
     { label: "Analytics", path: "/analytics", icon: BarChart3, roles: ["client", "admin", "client_admin", "super_admin"] },
     { label: "Knowledge Base", path: "/knowledge-base", icon: MessageCircleQuestion, roles: ["client", "admin", "client_admin", "client_user", "super_admin"] },
-    { label: "API & Webhooks", path: "/api-keys", icon: Terminal, roles: ["client", "admin", "client_admin", "super_admin"] },
+    { label: "API & Keys", path: "/api-keys", icon: Terminal, roles: ["client", "admin", "client_admin", "super_admin"] },
     { label: "User Settings", path: "/settings", icon: Settings, roles: ["client", "admin", "client_admin", "client_user", "super_admin"] },
+    { label: "Client Projects", path: "/admin/projects", icon: FolderKanban, roles: ["admin", "super_admin", "project_manager"] },
     { label: "Admin Panel", path: "/admin", icon: ShieldAlert, roles: ["admin", "super_admin"] },
   ];
 
-  const filteredNav = navigationItems.filter((item) =>
-    item.roles.includes(user?.role || "client")
+  const filteredNav = React.useMemo(
+    () => navigationItems.filter((item) => item.roles.includes(user?.role || "client")),
+    [user?.role]
   );
 
   return (
@@ -113,7 +119,10 @@ export function Sidebar({ className, isOpen, setIsOpen, onOpenDownloadModal }: S
       {/* Nav List */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-thin">
         {filteredNav.map((item, index) => {
-          const isActive = pathname === item.path || pathname?.startsWith(item.path + "/");
+          const isActive =
+            item.path === "/admin"
+              ? pathname === "/admin"
+              : pathname === item.path || pathname?.startsWith(item.path + "/");
           const Icon = item.icon;
 
           return (

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { SupportTicket, Project } from "../types";
 import { api } from "../lib/api";
+import { exportToCSV } from "../lib/export";
 import {
   HelpCircle,
   Clock,
@@ -19,9 +20,11 @@ import {
   X,
   Edit,
   Play,
-  RotateCcw
+  RotateCcw,
+  FileSpreadsheet
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import toast from "react-hot-toast";
 
 interface TicketsHubProps {
   project: Project;
@@ -237,6 +240,26 @@ export default function TicketsHub({ project, user, userRole }: TicketsHubProps)
   const openTicketsCount = tickets.filter((t) => t.status !== "Resolved").length;
   const criticalCount = tickets.filter((t) => (t.priority === "Critical" || t.priority === "Urgent") && t.status !== "Resolved").length;
 
+  const handleExportTickets = () => {
+    if (!tickets.length) {
+      toast.error("No tickets to export");
+      return;
+    }
+    exportToCSV(
+      tickets.map((t) => ({
+        ID: t.id,
+        Title: t.title,
+        Category: t.category,
+        Priority: t.priority,
+        Status: t.status,
+        Client: t.clientName,
+        RepliesCount: t.replies?.length || 0,
+      })),
+      `${project.name.toLowerCase().replace(/\s+/g, "_")}_tickets`
+    );
+    toast.success("Support tickets exported as CSV");
+  };
+
   return (
     <div className="space-y-6">
       {/* SLA & SUPPORT METRICS BANNER */}
@@ -296,13 +319,22 @@ export default function TicketsHub({ project, user, userRole }: TicketsHubProps)
           </div>
         </div>
 
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-mono text-xs uppercase tracking-wider font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-lg shadow-cyan-500/20"
-        >
-          <Plus className="h-4 w-4 stroke-[2.5]" />
-          RAISE SUPPORT TICKET
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleExportTickets}
+            className="px-3 py-2.5 bg-[#0A0D14] hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 font-mono text-xs uppercase tracking-wider font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" />
+            EXPORT CSV
+          </button>
+          <button
+            onClick={() => setShowCreateForm(true)}
+            className="px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-mono text-xs uppercase tracking-wider font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-lg shadow-cyan-500/20"
+          >
+            <Plus className="h-4 w-4 stroke-[2.5]" />
+            RAISE SUPPORT TICKET
+          </button>
+        </div>
       </div>
 
       {/* SEARCH & FILTERS BAR */}

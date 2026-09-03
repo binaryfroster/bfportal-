@@ -162,40 +162,48 @@
           "name": "Analytics",
           "user": "Shivam Dube",
           "role": "admin",
-          "status": "pass",
+          "status": "timeout",
           "redirectedTo": null,
           "actionButtonsFound": [],
-          "errors": []
+          "errors": [
+            "page.goto: Timeout 8000ms exceeded."
+          ]
         },
         {
           "route": "/feedback",
           "name": "Feedback",
           "user": "Shivam Dube",
           "role": "admin",
-          "status": "pass",
+          "status": "timeout",
           "redirectedTo": null,
           "actionButtonsFound": [],
-          "errors": []
+          "errors": [
+            "page.goto: Timeout 8000ms exceeded."
+          ]
         },
         {
           "route": "/handover",
           "name": "Handover",
           "user": "Shivam Dube",
           "role": "admin",
-          "status": "pass",
+          "status": "timeout",
           "redirectedTo": null,
           "actionButtonsFound": [],
-          "errors": []
+          "errors": [
+            "page.goto: Timeout 8000ms exceeded."
+          ]
         },
         {
           "route": "/knowledge-base",
           "name": "Knowledge Base",
           "user": "Shivam Dube",
           "role": "admin",
-          "status": "pass",
+          "status": "timeout",
           "redirectedTo": null,
           "actionButtonsFound": [],
-          "errors": []
+          "errors": [
+            "page.goto: Timeout 8000ms exceeded."
+          ]
         },
         {
           "route": "/maintenance",
@@ -212,20 +220,24 @@
           "name": "Onboarding",
           "user": "Shivam Dube",
           "role": "admin",
-          "status": "pass",
+          "status": "timeout",
           "redirectedTo": null,
           "actionButtonsFound": [],
-          "errors": []
+          "errors": [
+            "page.goto: Timeout 8000ms exceeded."
+          ]
         },
         {
           "route": "/settings",
           "name": "Settings",
           "user": "Shivam Dube",
           "role": "admin",
-          "status": "pass",
+          "status": "timeout",
           "redirectedTo": null,
           "actionButtonsFound": [],
-          "errors": []
+          "errors": [
+            "page.goto: Timeout 8000ms exceeded."
+          ]
         }
       ],
       "consoleErrors": 0
@@ -362,20 +374,24 @@
           "name": "Client 360",
           "user": "Digvijay Kadam",
           "role": "admin",
-          "status": "pass",
+          "status": "timeout",
           "redirectedTo": null,
           "actionButtonsFound": [],
-          "errors": []
+          "errors": [
+            "page.goto: Timeout 8000ms exceeded."
+          ]
         },
         {
           "route": "/credential-vault",
           "name": "Credential Vault",
           "user": "Digvijay Kadam",
           "role": "admin",
-          "status": "pass",
+          "status": "timeout",
           "redirectedTo": null,
           "actionButtonsFound": [],
-          "errors": []
+          "errors": [
+            "page.goto: Timeout 8000ms exceeded."
+          ]
         },
         {
           "route": "/api-keys",
@@ -394,16 +410,12 @@
           "name": "Analytics",
           "user": "Digvijay Kadam",
           "role": "admin",
-          "status": "pass",
+          "status": "timeout",
           "redirectedTo": null,
-          "actionButtonsFound": [
-            "DOWNLOAD APP",
-            "[EXPORT_CSV]",
-            "[EXPORT_PDF]",
-            "This Sprint",
-            "[REFRESH_TELEMETRY]"
-          ],
-          "errors": []
+          "actionButtonsFound": [],
+          "errors": [
+            "page.goto: Timeout 8000ms exceeded."
+          ]
         },
         {
           "route": "/feedback",
@@ -422,50 +434,60 @@
           "name": "Handover",
           "user": "Digvijay Kadam",
           "role": "admin",
-          "status": "pass",
+          "status": "timeout",
           "redirectedTo": null,
           "actionButtonsFound": [],
-          "errors": []
+          "errors": [
+            "page.goto: Navigation to \"http://localhost:3000/handover\" is interrupted by another navigation to \"http://localhost:3000/feedback\""
+          ]
         },
         {
           "route": "/knowledge-base",
           "name": "Knowledge Base",
           "user": "Digvijay Kadam",
           "role": "admin",
-          "status": "pass",
+          "status": "timeout",
           "redirectedTo": null,
           "actionButtonsFound": [],
-          "errors": []
+          "errors": [
+            "page.goto: Navigation to \"http://localhost:3000/knowledge-base\" is interrupted by another navigation to \"http://localhost:3000/handover\""
+          ]
         },
         {
           "route": "/maintenance",
           "name": "Maintenance",
           "user": "Digvijay Kadam",
           "role": "admin",
-          "status": "pass",
+          "status": "timeout",
           "redirectedTo": null,
           "actionButtonsFound": [],
-          "errors": []
+          "errors": [
+            "page.goto: Navigation to \"http://localhost:3000/maintenance\" is interrupted by another navigation to \"http://localhost:3000/knowledge-base\""
+          ]
         },
         {
           "route": "/onboarding",
           "name": "Onboarding",
           "user": "Digvijay Kadam",
           "role": "admin",
-          "status": "pass",
+          "status": "timeout",
           "redirectedTo": null,
           "actionButtonsFound": [],
-          "errors": []
+          "errors": [
+            "page.goto: Navigation to \"http://localhost:3000/onboarding\" is interrupted by another navigation to \"http://localhost:3000/maintenance\""
+          ]
         },
         {
           "route": "/settings",
           "name": "Settings",
           "user": "Digvijay Kadam",
           "role": "admin",
-          "status": "pass",
+          "status": "timeout",
           "redirectedTo": null,
           "actionButtonsFound": [],
-          "errors": []
+          "errors": [
+            "page.goto: Navigation to \"http://localhost:3000/settings\" is interrupted by another navigation to \"http://localhost:3000/onboarding\""
+          ]
         }
       ],
       "consoleErrors": 0
@@ -642,12 +664,10 @@
           "name": "Feedback",
           "user": "Jawad Khan Hakim",
           "role": "admin",
-          "status": "timeout",
+          "status": "pass",
           "redirectedTo": null,
           "actionButtonsFound": [],
-          "errors": [
-            "page.goto: Timeout 8000ms exceeded."
-          ]
+          "errors": []
         },
         {
           "route": "/handover",
@@ -674,12 +694,10 @@
           "name": "Maintenance",
           "user": "Jawad Khan Hakim",
           "role": "admin",
-          "status": "timeout",
+          "status": "pass",
           "redirectedTo": null,
           "actionButtonsFound": [],
-          "errors": [
-            "page.goto: Timeout 8000ms exceeded."
-          ]
+          "errors": []
         },
         {
           "route": "/onboarding",
@@ -836,10 +854,12 @@
           "name": "Client 360",
           "user": "Jawad Khan Hakim",
           "role": "admin",
-          "status": "pass",
+          "status": "timeout",
           "redirectedTo": null,
           "actionButtonsFound": [],
-          "errors": []
+          "errors": [
+            "page.goto: Timeout 8000ms exceeded."
+          ]
         },
         {
           "route": "/credential-vault",

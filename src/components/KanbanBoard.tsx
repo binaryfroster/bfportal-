@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Task, Project } from "../types";
 import { api } from "../lib/api";
+import { exportToCSV } from "../lib/export";
 import {
   Kanban,
   User,
@@ -18,9 +19,11 @@ import {
   RefreshCw,
   Edit,
   Play,
-  RotateCcw
+  RotateCcw,
+  FileSpreadsheet
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import toast from "react-hot-toast";
 
 interface KanbanBoardProps {
   project: Project;
@@ -179,20 +182,49 @@ export default function KanbanBoard({ project, userRole }: KanbanBoardProps) {
     );
   }
 
+  const handleExportTasks = () => {
+    if (!tasks.length) {
+      toast.error("No tasks to export");
+      return;
+    }
+    exportToCSV(
+      tasks.map((t) => ({
+        ID: t.id,
+        Title: t.title,
+        Description: t.description,
+        Column: t.column,
+        Priority: t.priority,
+        Assignee: t.assignedToName,
+        DueDate: t.dueDate,
+      })),
+      `${project.name.toLowerCase().replace(/\s+/g, "_")}_tasks`
+    );
+    toast.success("Tasks exported as CSV");
+  };
+
   return (
     <div className="space-y-6">
       {/* Kanban Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div className="flex items-center gap-2">
           <Kanban className="h-4.5 w-4.5 text-accent-primary" />
           <span className="font-mono text-xs text-text-secondary uppercase tracking-widest">// SECURE SCRUM KANBAN</span>
         </div>
         
-        {userRole === "admin" && (
-          <p className="font-mono text-[10px] text-accent-primary uppercase tracking-wider">
-            [ADMIN CONTROL ENABLED]
-          </p>
-        )}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleExportTasks}
+            className="text-[9px] font-mono font-bold px-2.5 py-1.5 rounded transition-colors flex items-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+            EXPORT CSV
+          </button>
+          {userRole === "admin" && (
+            <p className="font-mono text-[10px] text-accent-primary uppercase tracking-wider bg-accent-primary/10 px-2 py-1 rounded border border-accent-primary/30">
+              [ADMIN CONTROL ENABLED]
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Columns Grid */}

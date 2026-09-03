@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Invoice, Project } from "../types";
 import { api } from "../lib/api";
-import { CreditCard, FileText, Download, Check, ExternalLink, Printer, Clock, AlertTriangle, ArrowLeft, CheckCircle2, Loader2, Shield, X } from "lucide-react";
+import { exportToCSV } from "../lib/export";
+import { CreditCard, FileText, Download, Check, ExternalLink, Printer, Clock, AlertTriangle, ArrowLeft, CheckCircle2, Loader2, Shield, X, FileSpreadsheet } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import toast from "react-hot-toast";
 
 interface BillingHubProps {
   project: Project;
@@ -88,6 +90,28 @@ export default function BillingHub({ project, user, onPaymentSettled }: BillingH
     );
   }
 
+  const handleExportInvoices = () => {
+    if (!invoices.length) {
+      toast.error("No invoices to export");
+      return;
+    }
+    exportToCSV(
+      invoices.map((inv) => ({
+        InvoiceNumber: inv.invoiceNumber,
+        Description: inv.description,
+        Amount: inv.amount,
+        Tax: inv.tax,
+        Total: inv.total,
+        IssueDate: inv.issueDate,
+        DueDate: inv.dueDate,
+        Status: inv.status,
+        PaidAt: inv.paidAt || "Unpaid",
+      })),
+      `${project.name.toLowerCase().replace(/\s+/g, "_")}_invoices`
+    );
+    toast.success("Invoices exported as CSV");
+  };
+
   return (
     <div className="space-y-6">
       {/* Table grid */}
@@ -96,6 +120,13 @@ export default function BillingHub({ project, user, onPaymentSettled }: BillingH
           <span className="font-mono text-[10px] text-text-secondary uppercase tracking-widest">
             // FINANCES LEDGER: INVOICES OUTSTANDING
           </span>
+          <button
+            onClick={handleExportInvoices}
+            className="text-[9px] font-mono font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
+          >
+            <FileSpreadsheet className="w-3 h-3 text-emerald-400" />
+            EXPORT CSV
+          </button>
         </div>
 
         <div className="overflow-x-auto">

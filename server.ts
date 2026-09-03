@@ -2035,6 +2035,155 @@ app.get("/api/admin/emails-sent", authenticate, requireAdmin, (req, res) => {
   return res.json(db.emailsSent || []);
 });
 
+// ──────────────────────────────────────────────
+// 13. AI PROPOSAL GENERATOR ENDPOINTS
+// ──────────────────────────────────────────────
+
+// List all proposals
+app.get("/api/proposals", authenticate, (req, res) => {
+  const db = readDb();
+  return res.json(db.proposals || []);
+});
+
+// Create a new proposal
+app.post("/api/proposals", authenticate, (req, res) => {
+  const db = readDb();
+  if (!db.proposals) db.proposals = [];
+
+  const proposal = {
+    ...req.body,
+    id: `prop-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  db.proposals.unshift(proposal);
+  writeDb(db);
+  return res.json({ success: true, proposal });
+});
+
+// Update a proposal
+app.put("/api/proposals/:id", authenticate, (req, res) => {
+  const db = readDb();
+  if (!db.proposals) return res.status(404).json({ error: "No proposals found" });
+
+  const index = db.proposals.findIndex((p: any) => p.id === req.params.id);
+  if (index === -1) return res.status(404).json({ error: "Proposal not found" });
+
+  db.proposals[index] = {
+    ...db.proposals[index],
+    ...req.body,
+    updatedAt: new Date().toISOString(),
+  };
+  writeDb(db);
+  return res.json({ success: true, proposal: db.proposals[index] });
+});
+
+// Delete a proposal
+app.delete("/api/proposals/:id", authenticate, (req, res) => {
+  const db = readDb();
+  if (!db.proposals) return res.status(404).json({ error: "No proposals found" });
+
+  db.proposals = db.proposals.filter((p: any) => p.id !== req.params.id);
+  writeDb(db);
+  return res.json({ success: true });
+});
+
+// AI Proposal Generation (template fallback for Vite/Express dev mode)
+app.post("/api/proposals/generate", authenticate, (req, res) => {
+  const {
+    clientName, projectTitle, projectType, briefDescription,
+    estimatedBudget, currency = "USD", timelinePreference, techStackPreference = [], priorityFeatures
+  } = req.body;
+
+  if (!clientName || !projectTitle || !estimatedBudget) {
+    return res.status(400).json({ error: "clientName, projectTitle, and estimatedBudget are required" });
+  }
+
+  const budget = Number(estimatedBudget);
+  const rates: Record<string, number> = { USD: 95, GBP: 80, INR: 4000 };
+  const symbols: Record<string, string> = { USD: "$", GBP: "£", INR: "₹" };
+  const rate = rates[currency] || 95;
+  const totalHours = Math.round(budget / rate);
+
+  const phaseAllocations = [
+    { name: "Phase 1: Discovery & Architecture", pct: 0.15, milestones: ["Requirements Analysis", "System Architecture Document", "Tech Stack Finalization"] },
+    { name: "Phase 2: UX/UI Design", pct: 0.20, milestones: ["Wireframes & User Flows", "High-Fidelity Mockups", "Design System Documentation"] },
+    { name: "Phase 3: Core Development", pct: 0.35, milestones: ["Backend API Development", "Frontend Implementation", "Database Schema & Migrations"] },
+    { name: "Phase 4: QA & Testing", pct: 0.15, milestones: ["Unit & Integration Tests", "User Acceptance Testing", "Performance & Security Audit"] },
+    { name: "Phase 5: Launch & Deployment", pct: 0.10, milestones: ["CI/CD Pipeline Setup", "Production Deployment", "DNS & SSL Configuration"] },
+    { name: "Phase 6: Post-Launch Support", pct: 0.05, milestones: ["Bug Fix Sprint", "Performance Monitoring", "Knowledge Transfer"] },
+  ];
+
+  let weekCounter = 1;
+  const timeWeeks = parseInt(timelinePreference) || 12;
+
+  const phases = phaseAllocations.map((p) => {
+    const duration = Math.max(1, Math.round(timeWeeks * p.pct));
+    const phase = {
+      name: p.name,
+      duration: `${duration} week${duration > 1 ? "s" : ""}`,
+      startWeek: weekCounter,
+      endWeek: weekCounter + duration - 1,
+      milestones: p.milestones,
+      cost: Math.round(budget * p.pct),
+    };
+    weekCounter += duration;
+    return phase;
+  });
+
+  const costBreakdown = [
+    { id: "cl-1", category: "Frontend Development", description: `${projectType} UI with ${techStackPreference.slice(0, 3).join(", ") || "modern framework"}`, hours: Math.round(totalHours * 0.30), rate, amount: Math.round(budget * 0.30) },
+    { id: "cl-2", category: "Backend Development", description: "API architecture, business logic, and database integration", hours: Math.round(totalHours * 0.25), rate, amount: Math.round(budget * 0.25) },
+    { id: "cl-3", category: "UI/UX Design", description: "User research, wireframes, high-fidelity prototypes", hours: Math.round(totalHours * 0.15), rate, amount: Math.round(budget * 0.15) },
+    { id: "cl-4", category: "QA & Testing", description: "Automated testing, security audits, performance benchmarks", hours: Math.round(totalHours * 0.12), rate, amount: Math.round(budget * 0.12) },
+    { id: "cl-5", category: "DevOps & Infrastructure", description: "CI/CD pipelines, cloud infrastructure, monitoring", hours: Math.round(totalHours * 0.08), rate, amount: Math.round(budget * 0.08) },
+    { id: "cl-6", category: "Project Management", description: "Sprint planning, client communication, documentation", hours: Math.round(totalHours * 0.10), rate, amount: Math.round(budget * 0.10) },
+  ];
+
+  const subtotal = costBreakdown.reduce((sum, item) => sum + item.amount, 0);
+  const taxRate = currency === "INR" ? 18 : currency === "GBP" ? 20 : 0;
+  const taxAmount = Math.round(subtotal * (taxRate / 100));
+
+  const proposal = {
+    executiveSummary: `Binary Froster is pleased to present this proposal for the ${projectTitle} project for ${clientName}. ${briefDescription || `This ${projectType.toLowerCase()} solution`} will be built using industry-leading technologies and our proven 6-phase delivery methodology.\n\nOur team of senior engineers, designers, and project managers will deliver a production-ready solution within the ${timelinePreference || "12 week"} timeline, ensuring enterprise-grade quality, security, and scalability throughout the development lifecycle.`,
+    scopeOfWork: [
+      { title: "Requirements Analysis & Discovery", description: "Deep-dive workshops to capture functional and non-functional requirements, user personas, and success metrics.", included: true },
+      { title: "UI/UX Design & Prototyping", description: "Interactive Figma prototypes with dark premium aesthetic, responsive layouts, and accessibility compliance.", included: true },
+      { title: "Full-Stack Development", description: `End-to-end ${projectType.toLowerCase()} development using ${techStackPreference.join(", ") || "modern tech stack"}.`, included: true },
+      { title: "Quality Assurance & Testing", description: "Comprehensive testing including unit, integration, E2E, performance, and security penetration testing.", included: true },
+      { title: "Deployment & DevOps", description: "Production deployment with CI/CD pipelines, monitoring, and auto-scaling infrastructure.", included: true },
+      { title: "Post-Launch Support (30 days)", description: "Bug fixes, performance optimization, and knowledge transfer during the warranty period.", included: true },
+    ],
+    phases,
+    costBreakdown,
+    deliverables: [
+      { name: "Architecture & Technical Specification", description: "Complete system architecture document with database schemas and API contracts.", phase: "Discovery" },
+      { name: "UI/UX Design Package", description: "Figma design files, design system tokens, and interactive prototype.", phase: "Design" },
+      { name: "Source Code Repository", description: "Clean, documented, production-ready codebase with comprehensive test coverage.", phase: "Development" },
+      { name: "QA Report & Test Suites", description: "Automated test suites with coverage reports and security audit findings.", phase: "Testing" },
+      { name: "Production Environment", description: "Deployed application with CI/CD pipeline, monitoring dashboards, and runbooks.", phase: "Launch" },
+      { name: "Handover Documentation", description: "Technical documentation, API guides, deployment procedures, and admin manual.", phase: "Support" },
+    ],
+    techStackRecommendation: `Based on the ${projectType} requirements, we recommend: ${techStackPreference.length > 0 ? techStackPreference.join(", ") : "Next.js 15, React 19, TypeScript, PostgreSQL, Redis, Docker, and AWS"}. This stack provides optimal performance, developer productivity, and long-term maintainability.`,
+    assumptions: [
+      "Client will provide timely feedback within 48 hours of deliverable submissions",
+      "Third-party API documentation and credentials will be available at project kickoff",
+      "Content and copy will be provided by the client unless content creation is scoped",
+      "Development environment access will be provisioned within the first week",
+      `Project budget is estimated at ${symbols[currency]}${budget.toLocaleString()} with a 15% contingency buffer`,
+    ],
+    termsAndConditions: "This proposal is valid for 30 days from the date of issuance. Payment terms: 30% upfront deposit, 40% at mid-project milestone, 30% upon final delivery and acceptance. All intellectual property rights transfer to the client upon full payment. Binary Froster retains the right to showcase the project in its portfolio unless otherwise agreed in writing.",
+    subtotal,
+    taxRate,
+    taxAmount,
+    grandTotal: subtotal + taxAmount,
+    validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+  };
+
+  return res.json({ success: true, proposal, source: "template" });
+});
+
 // Serve the compiled frontend
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {

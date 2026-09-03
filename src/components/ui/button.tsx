@@ -3,7 +3,7 @@ import { cn } from "@/src/lib/utils";
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "ghost" | "destructive" | "accent";
+  variant?: "primary" | "secondary" | "outline" | "ghost" | "destructive" | "accent";
   size?: "sm" | "md" | "lg";
   isLoading?: boolean;
 }
@@ -18,9 +18,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             // Primary: Solid background with glow hover
             "bg-white text-bg-primary hover:bg-neutral-200 focus:ring-2 focus:ring-white/20":
               variant === "primary",
-            // Secondary: Bordered button
+            // Secondary / Outline: Bordered button
             "border border-border-custom bg-transparent text-white hover:bg-white/5 focus:ring-2 focus:ring-white/10":
-              variant === "secondary",
+              variant === "secondary" || variant === "outline",
             // Ghost: Transparent background
             "bg-transparent text-text-secondary hover:text-white hover:bg-white/5":
               variant === "ghost",
