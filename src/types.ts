@@ -11,6 +11,63 @@ export type UserRole =
   | 'finance' 
   | 'account_manager';
 
+export type InternalStudioRole = 
+  | 'super_admin' 
+  | 'admin' 
+  | 'project_manager' 
+  | 'developer' 
+  | 'designer' 
+  | 'finance' 
+  | 'account_manager' 
+  | 'support_agent';
+
+export type ClientOrganizationRole = 
+  | 'client_admin' 
+  | 'client' 
+  | 'client_user';
+
+export const STUDIO_STAFF_ROLES: UserRole[] = [
+  'super_admin',
+  'admin',
+  'project_manager',
+  'developer',
+  'designer',
+  'finance',
+  'account_manager',
+  'support_agent'
+];
+
+export const CLIENT_ROLES: UserRole[] = [
+  'client_admin',
+  'client',
+  'client_user'
+];
+
+export const isStudioStaff = (role?: string | null): boolean => {
+  if (!role) return false;
+  return STUDIO_STAFF_ROLES.includes(role as UserRole);
+};
+
+export const isClientUser = (role?: string | null): boolean => {
+  if (!role) return false;
+  return CLIENT_ROLES.includes(role as UserRole);
+};
+
+export const hasSignatoryAuthority = (role?: string | null): boolean => {
+  if (!role) return false;
+  return ['client_admin', 'super_admin'].includes(role);
+};
+
+export const hasFinancialAuthority = (role?: string | null): boolean => {
+  if (!role) return false;
+  return ['client_admin', 'super_admin', 'finance', 'admin'].includes(role);
+};
+
+export const hasAdminPanelAccess = (role?: string | null): boolean => {
+  if (!role) return false;
+  return ['super_admin', 'admin', 'project_manager'].includes(role);
+};
+
 export interface User {
   id: string;
   name: string;

@@ -23,6 +23,7 @@ import { Badge } from "@/src/components/ui/badge";
 import { Skeleton } from "@/src/components/ui/skeleton";
 import { Button } from "@/src/components/ui/button";
 import { Modal } from "@/src/components/ui/modal";
+import { hasSignatoryAuthority } from "@/src/types";
 import toast from "react-hot-toast";
 
 interface AuditLog {
@@ -303,15 +304,21 @@ export default function DeliverableApprovalPage() {
                   )}
 
                   {selectedDel.status !== "Approved" && (
-                    <button
-                      type="button"
-                      onClick={() => handleAction("Approve")}
-                      disabled={submitting}
-                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-[10px] font-bold uppercase rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <Check className="h-3.5 w-3.5 stroke-[2.5]" />
-                      Approve & Lock
-                    </button>
+                    hasSignatoryAuthority(user?.role) ? (
+                      <button
+                        type="button"
+                        onClick={() => handleAction("Approve")}
+                        disabled={submitting}
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-[10px] font-bold uppercase rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Check className="h-3.5 w-3.5 stroke-[2.5]" />
+                        Approve & Lock
+                      </button>
+                    ) : (
+                      <span className="px-2.5 py-1 bg-slate-900 border border-slate-800 text-slate-400 font-mono text-[9px] uppercase rounded" title="Requires client_admin or super_admin authority to sign off">
+                        Signatory Required
+                      </span>
+                    )
                   )}
                 </div>
               </div>

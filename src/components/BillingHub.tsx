@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Invoice, Project } from "../types";
+import { Invoice, Project, hasFinancialAuthority } from "../types";
 import { api } from "../lib/api";
 import { exportToCSV } from "../lib/export";
 import { CreditCard, FileText, Download, Check, ExternalLink, Printer, Clock, AlertTriangle, ArrowLeft, CheckCircle2, Loader2, Shield, X, FileSpreadsheet } from "lucide-react";
@@ -167,13 +167,19 @@ export default function BillingHub({ project, user, onPaymentSettled }: BillingH
                       <Printer className="h-4 w-4" />
                     </button>
                     {inv.status !== "Paid" && (
-                      <button
-                        onClick={() => handlePayNow(inv)}
-                        className="px-3 py-1 bg-accent-primary text-bg-primary hover:bg-accent-hover font-mono text-[10px] font-bold uppercase rounded-input transition-all flex items-center gap-1.5 cursor-pointer shadow-glow-strong"
-                      >
-                        <CreditCard className="h-3.5 w-3.5" />
-                        [PAY_NOW]
-                      </button>
+                      hasFinancialAuthority(user?.role) ? (
+                        <button
+                          onClick={() => handlePayNow(inv)}
+                          className="px-3 py-1 bg-accent-primary text-bg-primary hover:bg-accent-hover font-mono text-[10px] font-bold uppercase rounded-input transition-all flex items-center gap-1.5 cursor-pointer shadow-glow-strong"
+                        >
+                          <CreditCard className="h-3.5 w-3.5" />
+                          [PAY_NOW]
+                        </button>
+                      ) : (
+                        <span className="px-2.5 py-1 bg-bg-secondary border border-border-custom text-text-muted font-mono text-[9px] uppercase rounded" title="Requires client_admin, super_admin or finance authority">
+                          Pay Authority Required
+                        </span>
+                      )
                     )}
                   </td>
                 </tr>

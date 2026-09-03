@@ -347,6 +347,14 @@ export default function AdminProjectsPage() {
           </button>
 
           <Link
+            href="/proposals"
+            className="text-[10px] font-mono font-bold px-3 py-1.5 rounded transition-colors flex items-center gap-1.5 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-accent-primary" />
+            PROPOSAL ENGINE &rarr;
+          </Link>
+
+          <Link
             href="/admin"
             className="text-[10px] font-mono font-bold px-3 py-1.5 rounded transition-colors flex items-center gap-1.5 cursor-pointer bg-bg-secondary hover:bg-slate-800 text-text-muted hover:text-white border border-border-custom"
           >
@@ -715,6 +723,15 @@ export default function AdminProjectsPage() {
                       <DollarSign className="w-3 h-3" />
                       + INVOICE
                     </button>
+
+                    <Link
+                      href="/proposals"
+                      className="text-[10px] font-mono font-bold px-2 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer bg-accent-primary/10 hover:bg-accent-primary/25 text-accent-primary border border-accent-primary/30"
+                      title="Draft Proposal for this Client"
+                    >
+                      <Sparkles className="w-3 h-3" />
+                      PROPOSAL
+                    </Link>
 
                     <button
                       onClick={() => {

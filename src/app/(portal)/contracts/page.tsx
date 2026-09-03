@@ -18,6 +18,7 @@ import { Card, CardHeader, CardContent } from "@/src/components/ui/card";
 import { Badge } from "@/src/components/ui/badge";
 import { Skeleton } from "@/src/components/ui/skeleton";
 import { Button } from "@/src/components/ui/button";
+import { hasSignatoryAuthority } from "@/src/types";
 import toast from "react-hot-toast";
 
 interface Contract {
@@ -196,71 +197,77 @@ export default function ContractsPage() {
                   </p>
                 </div>
               </div>
-            ) : (
-              user?.role === "client" && (
-                <div className="pt-4 border-t border-border-custom/50">
-                  {!showSignForm ? (
-                    <Button
-                      onClick={() => setShowSignForm(true)}
-                      variant="accent"
-                      className="w-full font-mono text-xs uppercase font-bold py-3 cursor-pointer"
-                    >
-                      <PenTool className="h-4 w-4 mr-2" />
-                      PROCEED TO SIGN AGREEMENT
-                    </Button>
-                  ) : (
-                    <form onSubmit={handleSignContract} className="space-y-4">
-                      <div>
-                        <label className="block font-mono text-[9px] text-text-muted uppercase mb-1">
-                          Full Legal Name Signature
-                        </label>
-                        <input
-                          required
-                          type="text"
-                          placeholder="Type your full name to sign electronically..."
-                          value={typedName}
-                          onChange={(e) => setTypedName(e.target.value)}
-                          className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-white px-3 py-2 text-xs rounded-input outline-none font-sans"
-                        />
-                      </div>
-
-                      <label className="flex items-start gap-2.5 cursor-pointer text-xs text-text-secondary select-none leading-relaxed">
-                        <input
-                          required
-                          type="checkbox"
-                          checked={acceptTerms}
-                          onChange={(e) => setAcceptTerms(e.target.checked)}
-                          className="mt-0.5"
-                        />
-                        <span>
-                          I acknowledge that typing my legal name above acts as a legally-binding
-                          electronic signature under the Electronic Signatures in Global and National
-                          Commerce (ESIGN) Act.
-                        </span>
+            ) : hasSignatoryAuthority(user?.role) ? (
+              <div className="pt-4 border-t border-border-custom/50">
+                {!showSignForm ? (
+                  <Button
+                    onClick={() => setShowSignForm(true)}
+                    variant="accent"
+                    className="w-full font-mono text-xs uppercase font-bold py-3 cursor-pointer"
+                  >
+                    <PenTool className="h-4 w-4 mr-2" />
+                    PROCEED TO SIGN AGREEMENT
+                  </Button>
+                ) : (
+                  <form onSubmit={handleSignContract} className="space-y-4">
+                    <div>
+                      <label className="block font-mono text-[9px] text-text-muted uppercase mb-1">
+                        Full Legal Name Signature
                       </label>
+                      <input
+                        required
+                        type="text"
+                        placeholder="Type your full name to sign electronically..."
+                        value={typedName}
+                        onChange={(e) => setTypedName(e.target.value)}
+                        className="w-full bg-bg-secondary border border-border-custom focus:border-accent-primary text-white px-3 py-2 text-xs rounded-input outline-none font-sans"
+                      />
+                    </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setShowSignForm(false)}
-                          className="py-2.5 bg-bg-secondary border border-border-custom text-text-secondary hover:text-white font-mono text-[10px] uppercase rounded-input transition-colors cursor-pointer"
-                        >
-                          [CANCEL]
-                        </button>
-                        <Button
-                          type="submit"
-                          variant="accent"
-                          className="font-mono text-[10px] uppercase cursor-pointer"
-                          isLoading={signing}
-                          disabled={!typedName || !acceptTerms}
-                        >
-                          SEAL AGREEMENT
-                        </Button>
-                      </div>
-                    </form>
-                  )}
+                    <label className="flex items-start gap-2.5 cursor-pointer text-xs text-text-secondary select-none leading-relaxed">
+                      <input
+                        required
+                        type="checkbox"
+                        checked={acceptTerms}
+                        onChange={(e) => setAcceptTerms(e.target.checked)}
+                        className="mt-0.5"
+                      />
+                      <span>
+                        I acknowledge that typing my legal name above acts as a legally-binding
+                        electronic signature under the Electronic Signatures in Global and National
+                        Commerce (ESIGN) Act.
+                      </span>
+                    </label>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setShowSignForm(false)}
+                        className="py-2.5 bg-bg-secondary border border-border-custom text-text-secondary hover:text-white font-mono text-[10px] uppercase rounded-input transition-colors cursor-pointer"
+                      >
+                        [CANCEL]
+                      </button>
+                      <Button
+                        type="submit"
+                        variant="accent"
+                        className="font-mono text-[10px] uppercase cursor-pointer"
+                        isLoading={signing}
+                        disabled={!typedName || !acceptTerms}
+                      >
+                        SEAL AGREEMENT
+                      </Button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            ) : (
+              <div className="pt-4 border-t border-border-custom/50 text-center">
+                <div className="p-3 bg-bg-secondary/60 border border-border-custom rounded-input">
+                  <span className="font-mono text-[10px] text-text-muted uppercase">
+                    // READ-ONLY ACCESS: Signatory role required (client_admin or super_admin) to execute agreements
+                  </span>
                 </div>
-              )
+              </div>
             )}
           </Card>
         ) : (

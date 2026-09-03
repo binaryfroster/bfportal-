@@ -38,6 +38,67 @@ const getStatusColor = (status: ProposalStatus) => {
   }
 };
 
+const DEFAULT_PROPOSALS: Proposal[] = [
+  {
+    id: "prop-swap-2026",
+    proposalNumber: "BF-PROP-2026-001",
+    clientName: "Sterling Capital Group",
+    clientEmail: "john@sterling.com",
+    projectTitle: "Sterling Wealth Algorithmic Platform (SWAP)",
+    projectType: "Fintech Platform",
+    briefDescription: "Institutional algorithmic order book matching platform and double-entry ledger consensus engine.",
+    currency: "USD",
+    executiveSummary: "Binary Froster presents this engineering proposal to Sterling Capital Group for the deployment of SWAP (Sterling Wealth Algorithmic Platform). Our studio will deliver an ultra-reliable trading and settlement engine designed for microsecond execution, full regulatory compliance, and high-frequency order book processing.",
+    scopeOfWork: [
+      { title: "Technical Architecture & System Blueprinting", description: "Ledger consensus strategies, entity schemas, and compliance frameworks.", included: true },
+      { title: "Dark Minimalist UI/UX Design System", description: "Figma high-fidelity prototypes and dark mode trading components.", included: true },
+      { title: "Core Matching Engine & Rust Microservices", description: "High-throughput matching engine integrated with core banking APIs.", included: true },
+      { title: "Stripe Connect & Settlement Engine", description: "Bilateral multi-tenant split payments and reconciliation webhooks.", included: true },
+      { title: "Penetration Testing & Load Simulation", description: "Full PenTest sweeps and 10,000 concurrent user load simulations.", included: true },
+      { title: "Production Deployment on AWS Nitro Enclaves", description: "Zero-downtime blue/green deployment and 24/7 SLA telemetry.", included: true },
+    ],
+    phases: [
+      { name: "Phase 1: Architecture & Scope", duration: "Weeks 1–3", startWeek: 1, endWeek: 3, milestones: ["Architecture Blueprint Signoff", "FCA Compliance Signoff"], cost: 18000 },
+      { name: "Phase 2: UI/UX & Prototypes", duration: "Weeks 4–6", startWeek: 4, endWeek: 6, milestones: ["Trading Dashboard Prototypes", "Design Token Library"], cost: 24000 },
+      { name: "Phase 3: Core Engine & Rust Services", duration: "Weeks 7–12", startWeek: 7, endWeek: 12, milestones: ["Matching Engine Staging Build", "Database Migrations"], cost: 42000 },
+      { name: "Phase 4: Security & Load Simulation", duration: "Weeks 13–14", startWeek: 13, endWeek: 14, milestones: ["PenTest Audit Pass", "Load Benchmark Certificate"], cost: 21600 },
+      { name: "Phase 5: Production Launch & UAT", duration: "Weeks 15–16", startWeek: 15, endWeek: 16, milestones: ["DNS Cutover", "Source Code Handover Vault"], cost: 14400 },
+    ],
+    costBreakdown: [
+      { id: "1", category: "Architecture & Governance", description: "Principal Architect: Distributed ledger consensus & models", hours: 140, rate: 130, amount: 18200 },
+      { id: "2", category: "Core Full-Stack Engineering", description: "Senior Engineers: Rust services, WebSocket streams, APIs", hours: 420, rate: 105, amount: 44100 },
+      { id: "3", category: "UI/UX Design & Prototyping", description: "Product Designer: Dark mode component system", hours: 220, rate: 95, amount: 20900 },
+      { id: "4", category: "Quality Assurance & Auditing", description: "QA Lead: Automated Playwright & fuzz testing", hours: 180, rate: 90, amount: 16200 },
+      { id: "5", category: "DevOps & Cloud Infrastructure", description: "DevOps Engineer: AWS Nitro enclaves, Kubernetes", hours: 190, rate: 110, amount: 20600 },
+    ],
+    deliverables: [
+      { name: "OpenAPI Specification & Ledger Schema", description: "Complete technical architecture and Swagger contracts.", phase: "Phase 1: Architecture" },
+      { name: "Figma Dark Mode Design System", description: "Interactive trading dashboards and component library.", phase: "Phase 2: UI/UX" },
+      { name: "Rust & Next.js Source Code Repository", description: "Complete source code with automated CI/CD pipeline.", phase: "Phase 3: Core Engine" },
+      { name: "PenTest & SOC2 Compliance Certificate", description: "Third-party audited security report and load benchmarks.", phase: "Phase 4: Security" },
+      { name: "Production AWS Environment & Handover", description: "Configured cloud infrastructure and operational runbook.", phase: "Phase 5: Production Launch" },
+    ],
+    techStackRecommendation: "Frontend: Next.js 15 App Router & Tailwind CSS • Backend: Rust & Node.js microservices • Database: PostgreSQL with TimescaleDB & Redis cache • Cloud: AWS Nitro Enclaves • Payments: Stripe Connect.",
+    assumptions: [
+      "Sterling Capital will provide sandbox banking API credentials within 5 business days.",
+      "Milestone review feedback provided within 48 hours of demo deployment.",
+      "Includes 90 days of post-launch SLA bug warranty coverage.",
+      "Guaranteed 99.9% uptime with < 100ms average order execution latency.",
+    ],
+    termsAndConditions: "Payment Terms: 30% mobilization deposit upon signing, 40% upon staging demo approval, 30% upon production cutover. Valid for 30 calendar days.",
+    subtotal: 120000,
+    taxRate: 0.10,
+    taxAmount: 12000,
+    discount: 0,
+    grandTotal: 132000,
+    status: "Finalized",
+    validUntil: "2026-07-30",
+    createdAt: "2026-06-01T10:00:00Z",
+    updatedAt: "2026-06-05T14:30:00Z",
+    createdByName: "Shivam Dube",
+  }
+];
+
 export default function ProposalsPage() {
   const { user } = useUser();
   
@@ -50,11 +111,13 @@ export default function ProposalsPage() {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(PROPOSALS_STORAGE_KEY);
-      if (saved) {
+      if (saved && JSON.parse(saved).length > 0) {
         setProposals(JSON.parse(saved));
+      } else {
+        setProposals(DEFAULT_PROPOSALS);
       }
     } catch {
-      setProposals([]);
+      setProposals(DEFAULT_PROPOSALS);
     }
     setMounted(true);
   }, []);
@@ -343,11 +406,21 @@ export default function ProposalsPage() {
                 Back to Proposals
               </Button>
               <div className="flex gap-3">
-                <Button variant="outline" className="border-border-custom text-text-secondary hover:text-text-primary gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => window.print()}
+                  className="border-border-custom text-text-secondary hover:text-text-primary gap-2"
+                >
                   <Download className="h-4 w-4" />
                   Export PDF
                 </Button>
-                <Button className="bg-accent-primary text-bg-primary hover:bg-accent-hover gap-2 shadow-[0_0_15px_rgba(0,212,255,0.15)]">
+                <Button 
+                  onClick={() => {
+                    handleUpdateProposal({ status: 'Sent' });
+                    toast.success("Proposal marked as Sent to client via portal & email!");
+                  }}
+                  className="bg-accent-primary text-bg-primary hover:bg-accent-hover gap-2 shadow-[0_0_15px_rgba(0,212,255,0.15)]"
+                >
                   <FileText className="h-4 w-4" />
                   Send to Client
                 </Button>

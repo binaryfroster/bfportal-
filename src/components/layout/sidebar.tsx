@@ -48,28 +48,31 @@ export function Sidebar({ className, isOpen, setIsOpen, onOpenDownloadModal }: S
   const { user, logout } = useUser();
 
   const navigationItems = [
-    { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard, roles: ["client", "admin", "client_admin", "client_user", "super_admin"] },
-    { label: "Activity Log", path: "/activity", icon: Activity, roles: ["client", "admin", "client_admin", "client_user", "super_admin"] },
-    { label: "Client 360° Hub", path: "/client-360", icon: Sparkles, roles: ["client", "admin", "client_admin", "super_admin", "account_manager"] },
-    { label: "Project Workspace", path: "/project", icon: Calendar, roles: ["client", "admin", "client_admin", "client_user", "super_admin"] },
-    { label: "Kanban Board", path: "/tasks", icon: Kanban, roles: ["client", "admin", "client_admin", "client_user", "super_admin"] },
-    { label: "Change Requests", path: "/change-requests", icon: GitPullRequest, roles: ["client", "admin", "client_admin", "super_admin"] },
-    { label: "Files & Vault", path: "/files", icon: FolderOpen, roles: ["client", "admin", "client_admin", "client_user", "super_admin"] },
-    { label: "Approvals", path: "/approvals", icon: FileCheck2, roles: ["client", "admin", "client_admin", "super_admin"] },
-    { label: "Billing & Revenue", path: "/billing", icon: CreditCard, roles: ["client", "admin", "client_admin", "super_admin", "finance"] },
-    { label: "Proposals", path: "/proposals", icon: FileText, roles: ["admin", "super_admin", "project_manager", "account_manager"] },
-    { label: "Meetings", path: "/meetings", icon: Video, roles: ["client", "admin", "client_admin", "client_user", "super_admin"] },
-    { label: "Support & Tickets", path: "/tickets", icon: HelpCircle, roles: ["client", "admin", "client_admin", "client_user", "super_admin", "support_agent"] },
-    { label: "SLA Maintenance", path: "/maintenance", icon: Activity, roles: ["client", "admin", "client_admin", "super_admin"] },
-    { label: "Project Handover", path: "/handover", icon: BookOpen, roles: ["client", "admin", "client_admin", "super_admin"] },
-    { label: "Contracts & NDA", path: "/contracts", icon: ShieldCheck, roles: ["client", "admin", "client_admin", "super_admin"] },
-    { label: "Credentials", path: "/credential-vault", icon: KeyRound, roles: ["client", "admin", "client_admin", "super_admin"] },
-    { label: "Analytics", path: "/analytics", icon: BarChart3, roles: ["client", "admin", "client_admin", "super_admin"] },
-    { label: "Knowledge Base", path: "/knowledge-base", icon: MessageCircleQuestion, roles: ["client", "admin", "client_admin", "client_user", "super_admin"] },
-    { label: "API & Keys", path: "/api-keys", icon: Terminal, roles: ["client", "admin", "client_admin", "super_admin"] },
-    { label: "User Settings", path: "/settings", icon: Settings, roles: ["client", "admin", "client_admin", "client_user", "super_admin"] },
-    { label: "Client Projects", path: "/admin/projects", icon: FolderKanban, roles: ["admin", "super_admin", "project_manager"] },
-    { label: "Admin Panel", path: "/admin", icon: ShieldAlert, roles: ["admin", "super_admin"] },
+    // Client & Shared Collaborative Operations
+    { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard, roles: ["client", "admin", "client_admin", "client_user", "super_admin", "project_manager", "developer", "designer", "finance", "account_manager"] },
+    { label: "Activity Log", path: "/activity", icon: Activity, roles: ["client", "admin", "client_admin", "super_admin", "project_manager", "account_manager"] },
+    { label: "Project Workspace", path: "/project", icon: Calendar, roles: ["client", "admin", "client_admin", "client_user", "super_admin", "project_manager", "developer", "designer"] },
+    { label: "Kanban Board", path: "/tasks", icon: Kanban, roles: ["client", "admin", "client_admin", "client_user", "super_admin", "project_manager", "developer", "designer"] },
+    { label: "Change Requests", path: "/change-requests", icon: GitPullRequest, roles: ["client", "admin", "client_admin", "super_admin", "project_manager"] },
+    { label: "Files & Vault", path: "/files", icon: FolderOpen, roles: ["client", "admin", "client_admin", "client_user", "super_admin", "project_manager", "developer", "designer"] },
+    { label: "Approvals", path: "/approvals", icon: FileCheck2, roles: ["client", "admin", "client_admin", "super_admin", "project_manager"] },
+    { label: "Billing & Revenue", path: "/billing", icon: CreditCard, roles: ["client_admin", "admin", "super_admin", "finance"] },
+    { label: "Contracts & NDA", path: "/contracts", icon: ShieldCheck, roles: ["client_admin", "admin", "super_admin", "finance"] },
+    { label: "Meetings", path: "/meetings", icon: Video, roles: ["client", "admin", "client_admin", "client_user", "super_admin", "project_manager"] },
+    { label: "Support & Tickets", path: "/tickets", icon: HelpCircle, roles: ["client", "admin", "client_admin", "client_user", "super_admin", "support_agent", "project_manager"] },
+    { label: "SLA Maintenance", path: "/maintenance", icon: Activity, roles: ["client", "admin", "client_admin", "client_user", "super_admin", "project_manager"] },
+    { label: "Project Handover", path: "/handover", icon: BookOpen, roles: ["client_admin", "admin", "super_admin", "project_manager"] },
+    { label: "Analytics", path: "/analytics", icon: BarChart3, roles: ["client", "admin", "client_admin", "super_admin", "project_manager"] },
+    { label: "Knowledge Base", path: "/knowledge-base", icon: MessageCircleQuestion, roles: ["client", "admin", "client_admin", "client_user", "super_admin", "project_manager"] },
+    { label: "User Settings", path: "/settings", icon: Settings, roles: ["client", "admin", "client_admin", "client_user", "super_admin", "project_manager", "developer", "designer", "finance", "account_manager"] },
+
+    // STRICTLY INTERNAL STUDIO OPERATIONS (Forbidden to all external clients)
+    { label: "Proposal Engine", path: "/proposals", icon: Sparkles, roles: ["super_admin", "admin", "project_manager"] },
+    { label: "Client 360° Hub", path: "/client-360", icon: Sparkles, roles: ["super_admin", "admin", "account_manager"] },
+    { label: "Client Projects", path: "/admin/projects", icon: FolderKanban, roles: ["super_admin", "admin", "project_manager"] },
+    { label: "Credentials Vault", path: "/credential-vault", icon: KeyRound, roles: ["super_admin", "admin"] },
+    { label: "API & Webhook Keys", path: "/api-keys", icon: Terminal, roles: ["super_admin", "admin"] },
+    { label: "Admin Panel", path: "/admin", icon: ShieldAlert, roles: ["super_admin", "admin"] },
   ];
 
   const filteredNav = React.useMemo(
