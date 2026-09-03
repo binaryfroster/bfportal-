@@ -186,10 +186,6 @@ export default function ProposalsPage() {
     toast.success('Proposal duplicated');
   };
 
-  if (!mounted) {
-    return <div className="p-8"><Skeleton className="h-[600px] bg-bg-card border border-border-custom w-full rounded-xl" /></div>;
-  }
-
   const selectedProposal = useMemo(
     () => proposals.find((p) => p.id === selectedProposalId),
     [proposals, selectedProposalId]
@@ -207,6 +203,10 @@ export default function ProposalsPage() {
     }
     return { draftCount: drafts, finalizedCount: finalized, totalRevenue: revenue };
   }, [proposals]);
+
+  if (!mounted) {
+    return <div className="p-8"><Skeleton className="h-[600px] bg-bg-card border border-border-custom w-full rounded-xl" /></div>;
+  }
 
   return (
     <div className="container mx-auto p-6 max-w-[1400px]">

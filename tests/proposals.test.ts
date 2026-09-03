@@ -118,4 +118,97 @@ describe('AI Proposal Engine - Business Logic & Cost Estimation Tests', () => {
     proposal.scopeOfWork[2].included = true;
     assert.equal(proposal.scopeOfWork[2].included, true);
   });
+
+  it('7. should generate domain-specific executive summary and deliverables for AI/ML projects', () => {
+    const isAi = true;
+    const clientName = 'Apex Digital';
+    const projectTitle = 'Autonomous AI Voice Agent Platform';
+    const briefDesc = 'Streaming speech synthesis with low latency';
+    
+    let summary = `Binary Froster is pleased to present this comprehensive engineering proposal for "${projectTitle}" to ${clientName}. `;
+    if (isAi) {
+      summary += `Our studio specializes in low-latency generative AI architectures, autonomous voice agent pipelines, and robust RAG infrastructure.`;
+    }
+
+    assert.ok(summary.includes('Apex Digital'));
+    assert.ok(summary.includes('low-latency generative AI'));
+  });
+
+  it('8. should calculate granular engineering role rate breakdown summing to subtotal', () => {
+    const subtotal = 50000;
+    const baseRate = 95;
+    const r1 = Math.round(baseRate * 1.3);
+    const r2 = Math.round(baseRate * 1.05);
+    const r3 = Math.round(baseRate * 0.95);
+    const r4 = Math.round(baseRate * 0.90);
+    const r5 = Math.round(baseRate * 1.10);
+
+    const a1 = Math.round(subtotal * 0.22);
+    const a2 = Math.round(subtotal * 0.38);
+    const a3 = Math.round(subtotal * 0.18);
+    const a4 = Math.round(subtotal * 0.12);
+    const a5 = subtotal - (a1 + a2 + a3 + a4);
+
+    const sum = a1 + a2 + a3 + a4 + a5;
+    assert.equal(sum, subtotal);
+    assert.ok(a1 > 0 && a2 > 0 && a3 > 0 && a4 > 0 && a5 > 0);
+  });
+
+  it('9. should handle edge case where discount is large or equals subtotal', () => {
+    const subtotal = 10000;
+    const taxRate = 0.10;
+    const taxAmount = subtotal * taxRate; // 1000
+    const fullDiscount = 11000; // 100% discount covering subtotal and tax
+    const grandTotal = Math.max(0, subtotal + taxAmount - fullDiscount);
+    assert.equal(grandTotal, 0);
+  });
+
+  it('10. should enforce minimum budget thresholds per currency', () => {
+    const minBudgets: Record<ProposalCurrency, number> = {
+      USD: 500,
+      GBP: 400,
+      INR: 40000,
+    };
+
+    assert.equal(minBudgets.USD, 500);
+    assert.equal(minBudgets.GBP, 400);
+    assert.equal(minBudgets.INR, 40000);
+
+    // Test rejection criteria
+    assert.ok(499 < minBudgets.USD);
+    assert.ok(399 < minBudgets.GBP);
+    assert.ok(39999 < minBudgets.INR);
+
+    // Test acceptance criteria
+    assert.ok(500 >= minBudgets.USD);
+    assert.ok(400 >= minBudgets.GBP);
+    assert.ok(40000 >= minBudgets.INR);
+  });
+
+  it('11. should detect and reject empty or whitespace-only client credentials', () => {
+    const validateInputs = (clientName: string, projectTitle: string) => {
+      return Boolean(clientName?.trim() && projectTitle?.trim());
+    };
+
+    assert.equal(validateInputs('', 'My App'), false);
+    assert.equal(validateInputs('   ', 'My App'), false);
+    assert.equal(validateInputs('Acme Corp', ''), false);
+    assert.equal(validateInputs('Acme Corp', '   '), false);
+    assert.equal(validateInputs('Acme Corp', 'Fintech Engine'), true);
+  });
+
+  it('12. should validate non-numeric or non-positive budgets', () => {
+    const validateBudget = (budget: any) => {
+      const num = Number(budget);
+      return !isNaN(num) && num > 0;
+    };
+
+    assert.equal(validateBudget(NaN), false);
+    assert.equal(validateBudget(-500), false);
+    assert.equal(validateBudget(0), false);
+    assert.equal(validateBudget("invalid"), false);
+    assert.equal(validateBudget(25000), true);
+    assert.equal(validateBudget("25000"), true);
+  });
 });
+

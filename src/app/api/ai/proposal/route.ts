@@ -282,21 +282,55 @@ This technical proposal remains valid for 30 calendar days from ${new Date().toL
 
 export async function POST(request: NextRequest) {
   try {
-    const body: ProposalGenerateRequest = await request.json();
+    const rawBody = await request.json();
 
-    // 1. Validation & Input Sanitization
-    if (!body.clientName || !body.projectTitle || !body.estimatedBudget || !body.currency) {
-      return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
+    // 1. Robust Validation & Type Guarding
+    if (!rawBody || typeof rawBody !== 'object') {
+      return NextResponse.json({ success: false, error: 'Invalid request payload' }, { status: 400 });
+    }
+
+    const clientName = typeof rawBody.clientName === 'string' ? rawBody.clientName.trim() : '';
+    const projectTitle = typeof rawBody.projectTitle === 'string' ? rawBody.projectTitle.trim() : '';
+    const briefDescription = typeof rawBody.briefDescription === 'string' ? rawBody.briefDescription.trim() : '';
+    const projectType = typeof rawBody.projectType === 'string' ? rawBody.projectType.trim() : 'Custom Software';
+    const timelinePreference = typeof rawBody.timelinePreference === 'string' ? rawBody.timelinePreference.trim() : '8 weeks';
+    const techStackPreference = Array.isArray(rawBody.techStackPreference) ? rawBody.techStackPreference : [];
+    const priorityFeatures = typeof rawBody.priorityFeatures === 'string' ? rawBody.priorityFeatures.trim() : '';
+    const estimatedBudget = Number(rawBody.estimatedBudget);
+    const currency = rawBody.currency as 'USD' | 'GBP' | 'INR';
+
+    if (!clientName || !projectTitle || !estimatedBudget || !currency) {
+      return NextResponse.json({ success: false, error: 'Missing required fields: clientName, projectTitle, estimatedBudget, currency' }, { status: 400 });
+    }
+
+    if (!['USD', 'GBP', 'INR'].includes(currency)) {
+      return NextResponse.json({ success: false, error: 'Unsupported currency. Must be USD, GBP, or INR.' }, { status: 400 });
+    }
+
+    if (isNaN(estimatedBudget) || estimatedBudget <= 0) {
+      return NextResponse.json({ success: false, error: 'Estimated budget must be a positive number.' }, { status: 400 });
     }
 
     // Minimum budget validation
     let minBudget = 500;
-    if (body.currency === 'GBP') minBudget = 400;
-    if (body.currency === 'INR') minBudget = 40000;
+    if (currency === 'GBP') minBudget = 400;
+    if (currency === 'INR') minBudget = 40000;
 
-    if (body.estimatedBudget < minBudget) {
-      return NextResponse.json({ success: false, error: `Minimum budget for ${body.currency} is ${minBudget}` }, { status: 400 });
+    if (estimatedBudget < minBudget) {
+      return NextResponse.json({ success: false, error: `Minimum budget for ${currency} is ${minBudget}` }, { status: 400 });
     }
+
+    const body: ProposalGenerateRequest = {
+      clientName,
+      projectTitle,
+      projectType,
+      briefDescription,
+      estimatedBudget,
+      currency,
+      timelinePreference,
+      techStackPreference,
+      priorityFeatures
+    };
 
     const openAiKey = process.env.OPENAI_API_KEY;
     const geminiKey = process.env.GEMINI_API_KEY;
